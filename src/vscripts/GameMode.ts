@@ -91,7 +91,13 @@ export class GameMode {
   }
 
   private configure(): void {
-    GameRules.SetShowcaseTime(0);
+    GameRules.EnableCustomGameSetupAutoLaunch(true)
+    GameRules.SetCustomGameSetupAutoLaunchDelay(0)
+    GameRules.SetHeroSelectionTime(10)
+    GameRules.SetStrategyTime(0)
+    GameRules.SetPreGameTime(0)
+    GameRules.SetShowcaseTime(0)
+    GameRules.SetPostGameTime(5)
     GameRules.SetHeroSelectionTime(heroSelectionTime);
     const gameModeEntity = GameRules.GetGameModeEntity();
     gameModeEntity.SetFogOfWarDisabled(true);

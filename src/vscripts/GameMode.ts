@@ -1,10 +1,17 @@
 import { reloadable } from "./lib/tstl-utils";
 import { modifier_panic } from "./modifiers/modifier_panic";
+import { modifier_neutral_ai } from "./modifiers/modifier_neutral_ai";
 
 const heroSelectionTime = 20;
 // null will not force a hero selection
 const forceHero = "sven";
-let numOfZombies = 0;
+let spawnedZombies: CDOTA_BaseNPC[] = [];
+let viewRangeParticles: (ViewRangeParticles | undefined)[] = [];
+
+type ViewRangeParticles = {
+  entityId: EntityIndex;
+  particleId: ParticleID;
+};
 
 declare global {
   interface CDOTAGameRules {
@@ -20,6 +27,7 @@ export class GameMode {
       "particles/units/heroes/hero_meepo/meepo_earthbind_projectile_fx.vpcf",
       context
     );
+    PrecacheResource("particle", "particles/range_finder_aoe.vpcf", context);
     PrecacheResource(
       "soundfile",
       "soundevents/game_sounds_heroes/game_sounds_meepo.vsndevts",
@@ -51,6 +59,55 @@ export class GameMode {
       (event) => this.OnNpcSpawned(event),
       undefined
     );
+    ListenToGameEvent(
+      "entity_killed",
+      (event) => this.OnEntityKilled(event),
+      undefined
+    );
+
+    CustomGameEventManager.RegisterListener("alt_active", (_, data) => {
+      const player = PlayerResource.GetPlayer(data.PlayerID)!;
+      const hero = player.GetAssignedHero();
+      const viewRangeCast = "particles/range_finder_aoe.vpcf";
+      spawnedZombies.map((entity) => {
+        const radius = entity.GetCurrentVisionRange();
+        let particle = viewRangeParticles.find(
+          (item) => item?.entityId === entity.entindex()
+        );
+        if (particle === undefined) {
+          const effectIndicator = ParticleManager.CreateParticle(
+            viewRangeCast,
+            ParticleAttachment.ABSORIGIN_FOLLOW,
+            entity
+          );
+          particle = {
+            entityId: entity.entindex(),
+            particleId: effectIndicator,
+          };
+          viewRangeParticles.push(particle);
+        }
+        ParticleManager.SetParticleControl(
+          particle.particleId,
+          2,
+          entity.GetAbsOrigin()
+        );
+        ParticleManager.SetParticleControl(
+          particle.particleId,
+          3,
+          Vector(radius, 0, 0)
+        );
+      });
+    });
+
+    CustomGameEventManager.RegisterListener("alt_inactive", (_, data) => {
+      viewRangeParticles.map((particle) => {
+        if (particle === undefined) return;
+
+        ParticleManager.DestroyParticle(particle.particleId, true);
+        ParticleManager.ReleaseParticleIndex(particle.particleId);
+      });
+      viewRangeParticles = [];
+    });
 
     // Register event listeners for events from the UI
     CustomGameEventManager.RegisterListener("ui_panel_closed", (_, data) => {
@@ -73,17 +130,27 @@ export class GameMode {
     });
 
     const spawner = Entities.FindAllByName("zombie_spawner");
-    print(`TEST: Spawner: ${spawner.length}`);
     Timers.CreateTimer(() => {
-      if (numOfZombies < 500) {
-        const position = (spawner[0].GetAbsOrigin() + RandomVector(2500)) as Vector;
-        CreateUnitByName(
+      if (spawnedZombies.length < 10) {
+        const position = (spawner[0].GetAbsOrigin() +
+          RandomVector(2500)) as Vector;
+        const newZombie = CreateUnitByName(
           "npc_dota_creature_zombie",
           position,
           true,
           undefined,
           undefined,
-          DotaTeam.BADGUYS
+          DotaTeam.NEUTRALS
+        );
+        spawnedZombies.push(newZombie);
+        newZombie.AddNewModifier(
+          newZombie,
+          undefined,
+          modifier_neutral_ai.name,
+          {
+            aggroRange: newZombie.GetAcquisitionRange(),
+            leashRange: newZombie.GetAcquisitionRange(),
+          }
         );
       }
       return 10.0;
@@ -91,16 +158,16 @@ export class GameMode {
   }
 
   private configure(): void {
-    GameRules.EnableCustomGameSetupAutoLaunch(true)
-    GameRules.SetCustomGameSetupAutoLaunchDelay(0)
-    GameRules.SetHeroSelectionTime(10)
-    GameRules.SetStrategyTime(0)
-    GameRules.SetPreGameTime(0)
-    GameRules.SetShowcaseTime(0)
-    GameRules.SetPostGameTime(5)
+    GameRules.EnableCustomGameSetupAutoLaunch(true);
+    GameRules.SetCustomGameSetupAutoLaunchDelay(0);
+    GameRules.SetHeroSelectionTime(10);
+    GameRules.SetStrategyTime(0);
+    GameRules.SetPreGameTime(0);
+    GameRules.SetShowcaseTime(0);
+    GameRules.SetPostGameTime(5);
     GameRules.SetHeroSelectionTime(heroSelectionTime);
     const gameModeEntity = GameRules.GetGameModeEntity();
-    gameModeEntity.SetFogOfWarDisabled(true);
+    // gameModeEntity.SetFogOfWarDisabled(true);
 
     if (forceHero != null) {
       gameModeEntity.SetCustomGameForceHero(forceHero);
@@ -109,13 +176,6 @@ export class GameMode {
 
   public OnStateChange(): void {
     const state = GameRules.State_Get();
-
-    // Add 4 bots to lobby in tools
-    // if (IsInToolsMode() && state == GameState.CUSTOM_GAME_SETUP) {
-    //   for (let i = 0; i < 4; i++) {
-    //     Tutorial.AddBot("npc_dota_hero_lina", "", "", false);
-    //   }
-    // }
 
     if (state === GameState.CUSTOM_GAME_SETUP) {
       // Automatically skip setup in tools
@@ -155,12 +215,33 @@ export class GameMode {
     //     unit.AddAbility("meepo_earthbind_ts_example");
     //   }
     // }
+    // const entH = EntIndexToHScript(event.entindex) as CDOTA_BaseNPC;
+    // if (entH) {
+    //   print(`TEST: Entity name: ${entH.GetUnitLabel()}`);
+    //   if (entH.GetUnitLabel() === "zombie") {
+    //     numOfZombies = numOfZombies + 1;
+    //   }
+    // }
+  }
 
-    const entH = EntIndexToHScript(event.entindex) as CDOTA_BaseNPC;
-    if (entH) {
-      print(`TEST: Entity name: ${entH.GetUnitLabel()}`);
-      if (entH.GetUnitLabel() === "zombie") {
-        numOfZombies = numOfZombies + 1;
+  private OnEntityKilled(event: EntityKilledEvent) {
+    const zombieKilled = EntIndexToHScript(
+      event.entindex_killed
+    ) as CDOTA_BaseNPC;
+    if (zombieKilled) {
+      spawnedZombies = spawnedZombies.filter(
+        (entity) => entity.entindex() !== event.entindex_killed
+      );
+      const particle = viewRangeParticles.find(
+        (item) => item?.entityId === event.entindex_killed
+      );
+      if (particle) {
+        ParticleManager.DestroyParticle(particle.particleId, true);
+        ParticleManager.ReleaseParticleIndex(particle.particleId);
+        viewRangeParticles = viewRangeParticles.splice(
+          viewRangeParticles.indexOf(particle),
+          1
+        );
       }
     }
   }

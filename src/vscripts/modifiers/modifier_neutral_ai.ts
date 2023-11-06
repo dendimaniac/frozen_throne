@@ -21,7 +21,7 @@ export class modifier_neutral_ai extends BaseModifier {
   aggroTarget!: CDOTA_BaseNPC;
   stateActions!: { [key: number]: (context: any) => void };
 
-  IdleThink(context: this) {
+  IdleThink(context: this): void {
     if (!context.unit) return;
 
     const units = FindUnitsInRadius(
@@ -36,15 +36,14 @@ export class modifier_neutral_ai extends BaseModifier {
       false
     );
 
-    if (units.length > 0) {
-      context.spawnPos = context.unit.GetAbsOrigin();
-      context.aggroTarget = units[0];
-      context.unit.MoveToTargetToAttack(context.aggroTarget);
-      context.state = AI_STATE_AGGRESSIVE;
-    }
+    if (units.length === 0) return;
+
+    context.aggroTarget = units[0];
+    context.unit.MoveToTargetToAttack(context.aggroTarget);
+    context.state = AI_STATE_AGGRESSIVE;
   }
 
-  AggressiveThink(context: this) {
+  AggressiveThink(context: this): void {
     const distanceToSpawnPos = (
       (context.spawnPos - context.unit.GetAbsOrigin()) as Vector
     ).Length();
@@ -63,7 +62,7 @@ export class modifier_neutral_ai extends BaseModifier {
     context.unit.MoveToTargetToAttack(context.aggroTarget);
   }
 
-  ReturningThink(context: this) {
+  ReturningThink(context: this): void {
     const distanceToSpawnPos = (
       (context.spawnPos - context.unit.GetAbsOrigin()) as Vector
     ).Length();
@@ -75,11 +74,11 @@ export class modifier_neutral_ai extends BaseModifier {
     context.unit.MoveToPosition(context.spawnPos);
   }
 
-  // Run when modifier instance is created
-  OnCreated(params: { aggroRange: number; leashRange: number }) {
+  OnCreated(params: { aggroRange: number; leashRange: number }): void {
     if (IsServer()) {
       this.state = AI_STATE_IDLE;
       this.unit = this.GetParent();
+      this.spawnPos = this.unit.GetAbsOrigin();
       this.aggroRange = params.aggroRange;
       this.leashRange = params.leashRange;
       this.stateActions = {
@@ -95,8 +94,7 @@ export class modifier_neutral_ai extends BaseModifier {
     return true;
   }
 
-  // Called when intervalThink is triggered
-  OnIntervalThink() {
+  OnIntervalThink(): void {
     this.stateActions[this.state](this);
   }
 }

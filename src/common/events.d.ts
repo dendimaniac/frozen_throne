@@ -1,9 +1,9 @@
 /**
  * This file contains types for the events you want to send between the UI (Panorama)
  * and the server (VScripts).
- * 
- * IMPORTANT: 
- * 
+ *
+ * IMPORTANT:
+ *
  * The dota engine will change the type of event data slightly when it is sent, so on the
  * Panorama side your event handlers will have to handle NetworkedData<EventType>, changes are:
  *   - Booleans are turned to 0 | 1
@@ -15,8 +15,14 @@
 interface CustomGameEventDeclarations {
     example_event: ExampleEventData,
     ui_panel_closed: UIPanelClosedEventData,
-    alt_active: AltButtonActiveData,
-    alt_inactive: AltButtonInactiveData,
+    alt_active: AltButtonActiveEventData,
+    alt_inactive: AltButtonInactiveEventData,
+    round_time_updated: RoundTimeUpdatedEventData,
+}
+
+interface RoundTimeUpdatedEventData {
+  maxRoundTimer: number,
+  currentRoundTimer: number
 }
 
 // Define the type of data sent by the example_event event
@@ -30,5 +36,5 @@ interface ExampleEventData {
 // This event has no data
 interface UIPanelClosedEventData {}
 
-interface AltButtonActiveData {}
-interface AltButtonInactiveData {}
+interface AltButtonActiveEventData {}
+interface AltButtonInactiveEventData {}

@@ -1,6 +1,7 @@
 import { reloadable } from "./lib/tstl-utils";
 import { modifier_panic } from "./modifiers/modifier_panic";
 import { modifier_neutral_ai } from "./modifiers/modifier_neutral_ai";
+import { RoundTimer } from "./RoundTimer";
 
 const heroSelectionTime = 20;
 // null will not force a hero selection
@@ -123,37 +124,10 @@ export class GameMode {
       });
 
       // Also apply the panic modifier to the sending player's hero
-      const hero = player.GetAssignedHero();
-      hero.AddNewModifier(hero, undefined, modifier_panic.name, {
-        duration: 1,
-      });
-    });
-
-    const spawner = Entities.FindAllByName("zombie_spawner");
-    Timers.CreateTimer(() => {
-      if (spawnedZombies.length < 10) {
-        const position = (spawner[0].GetAbsOrigin() +
-          RandomVector(2500)) as Vector;
-        const newZombie = CreateUnitByName(
-          "npc_dota_creature_zombie",
-          position,
-          true,
-          undefined,
-          undefined,
-          DotaTeam.NEUTRALS
-        );
-        spawnedZombies.push(newZombie);
-        newZombie.AddNewModifier(
-          newZombie,
-          undefined,
-          modifier_neutral_ai.name,
-          {
-            aggroRange: newZombie.GetAcquisitionRange(),
-            leashRange: newZombie.GetAcquisitionRange(),
-          }
-        );
-      }
-      return 10.0;
+      // const hero = player.GetAssignedHero();
+      // hero.AddNewModifier(hero, undefined, modifier_panic.name, {
+      //   duration: 1,
+      // });
     });
   }
 
@@ -196,6 +170,35 @@ export class GameMode {
     print("Game starting!");
 
     // Do some stuff here
+    const spawner = Entities.FindAllByName("zombie_spawner");
+    Timers.CreateTimer(() => {
+      if (spawnedZombies.length < 10) {
+        const position = (spawner[0].GetAbsOrigin() +
+          RandomVector(2500)) as Vector;
+        const newZombie = CreateUnitByName(
+          "npc_dota_creature_zombie",
+          position,
+          true,
+          undefined,
+          undefined,
+          DotaTeam.NEUTRALS
+        );
+        spawnedZombies.push(newZombie);
+        newZombie.AddNewModifier(
+          newZombie,
+          undefined,
+          modifier_neutral_ai.name,
+          {
+            aggroRange: newZombie.GetAcquisitionRange(),
+            leashRange: newZombie.GetAcquisitionRange(),
+          }
+        );
+      }
+      return 10.0;
+    });
+
+    let roundTimer = new RoundTimer(10);
+    roundTimer.StartNewRound();
   }
 
   // Called on script_reload

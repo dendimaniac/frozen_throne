@@ -73,8 +73,6 @@ export class GameMode {
     );
 
     CustomGameEventManager.RegisterListener("alt_active", (_, data) => {
-      const player = PlayerResource.GetPlayer(data.PlayerID)!;
-      const hero = player.GetAssignedHero();
       const viewRangeCast = "particles/range_finder_aoe.vpcf";
       spawnedZombies.map((entity) => {
         const radius = entity.GetCurrentVisionRange();
@@ -149,6 +147,7 @@ export class GameMode {
     GameRules.SetHeroSelectionTime(heroSelectionTime);
     const gameModeEntity = GameRules.GetGameModeEntity();
     gameModeEntity.SetFogOfWarDisabled(true);
+    gameModeEntity.SetDaynightCycleDisabled(true);
 
     if (forceHero != null) {
       gameModeEntity.SetCustomGameForceHero(forceHero);
@@ -224,9 +223,7 @@ export class GameMode {
       DotaTeam.NEUTRALS
     );
 
-    let roundTimer = new RoundTimer(10);
-    roundTimer.StartNewRound();
-
+    new RoundTimer(10);
     new ChestItemDropHandler();
   }
 

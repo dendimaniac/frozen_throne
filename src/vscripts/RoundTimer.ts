@@ -1,25 +1,43 @@
 import { reloadable } from "./lib/tstl-utils";
 
+const dayTime = 0.3;
+const nightTime = 0.8;
+const startDelay = 5;
+
 @reloadable
 export class RoundTimer {
   maxRoundTimer: number = 0;
   currentRoundTimer: number = 0;
   createdTimer: string = "";
+  gameMode: CDOTABaseGameMode;
 
   constructor(maxRoundTimer: number) {
-    this.maxRoundTimer = maxRoundTimer;
-    this.currentRoundTimer = 0;
+    this.maxRoundTimer = startDelay;
+    this.UpdateRoundTimer(0);
+    this.StartNewRound(false);
+    this.gameMode = GameRules.GetGameModeEntity();
+    GameRules.SetTimeOfDay(nightTime);
+
+    Timers.CreateTimer(startDelay, () => {
+      this.ClearRoundTimer();
+      this.maxRoundTimer = maxRoundTimer;
+      this.StartNewRound();
+    });
   }
 
-  public StartNewRound() {
+  private StartNewRound(switchDayNight: boolean = true) {
+    if (switchDayNight) {
+      GameRules.SetTimeOfDay(GameRules.IsDaytime() ? nightTime : dayTime);
+    }
     this.createdTimer = Timers.CreateTimer(
       {
         callback: () => {
-          this.currentRoundTimer++;
-          this.SendUpdatedRoundTimer();
           if (this.currentRoundTimer === this.maxRoundTimer) {
             this.ClearRoundTimer();
+            this.StartNewRound();
+            return;
           }
+          this.UpdateRoundTimer(this.currentRoundTimer + 1);
           return 1;
         },
         useGameTime: true,
@@ -28,18 +46,19 @@ export class RoundTimer {
     );
   }
 
-  public EndRound() {
+  public ForceEndRound() {
     this.ClearRoundTimer();
-    this.currentRoundTimer = this.maxRoundTimer;
-    this.SendUpdatedRoundTimer();
+    this.UpdateRoundTimer(this.maxRoundTimer);
   }
 
   private ClearRoundTimer() {
     Timers.RemoveTimer(this.createdTimer);
     this.createdTimer = "";
+    this.UpdateRoundTimer(0);
   }
 
-  private SendUpdatedRoundTimer() {
+  private UpdateRoundTimer(newValue: number) {
+    this.currentRoundTimer = newValue;
     CustomGameEventManager.Send_ServerToAllClients("round_time_updated", {
       maxRoundTimer: this.maxRoundTimer,
       currentRoundTimer: this.currentRoundTimer,

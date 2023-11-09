@@ -2,6 +2,7 @@ import { reloadable } from "./lib/tstl-utils";
 import { modifier_panic } from "./modifiers/modifier_panic";
 import { modifier_neutral_ai } from "./modifiers/modifier_neutral_ai";
 import { RoundTimer } from "./RoundTimer";
+import { ChestItemDropHandler } from "./ChestItemDropHandler";
 
 const heroSelectionTime = 20;
 // null will not force a hero selection
@@ -37,6 +38,11 @@ export class GameMode {
     PrecacheResource(
       "model",
       "models/heroes/undying/undying_minion.vmdl",
+      context
+    );
+    PrecacheResource(
+      "model",
+      "models/props_gameplay/treasure_chest001.vmdl",
       context
     );
   }
@@ -124,7 +130,8 @@ export class GameMode {
       });
 
       // Also apply the panic modifier to the sending player's hero
-      // const hero = player.GetAssignedHero();
+      const hero = player.GetAssignedHero();
+      hero.AddItemByName("item_blink");
       // hero.AddNewModifier(hero, undefined, modifier_panic.name, {
       //   duration: 1,
       // });
@@ -141,7 +148,7 @@ export class GameMode {
     GameRules.SetPostGameTime(5);
     GameRules.SetHeroSelectionTime(heroSelectionTime);
     const gameModeEntity = GameRules.GetGameModeEntity();
-    // gameModeEntity.SetFogOfWarDisabled(true);
+    gameModeEntity.SetFogOfWarDisabled(true);
 
     if (forceHero != null) {
       gameModeEntity.SetCustomGameForceHero(forceHero);
@@ -197,8 +204,30 @@ export class GameMode {
       return 10.0;
     });
 
+    let position = (spawner[0].GetAbsOrigin() + RandomVector(100)) as Vector;
+    CreateUnitByName(
+      "chest_hospital",
+      position,
+      true,
+      undefined,
+      undefined,
+      DotaTeam.NEUTRALS
+    );
+
+    position = (spawner[0].GetAbsOrigin() + RandomVector(200)) as Vector;
+    CreateUnitByName(
+      "chest_police_station",
+      position,
+      true,
+      undefined,
+      undefined,
+      DotaTeam.NEUTRALS
+    );
+
     let roundTimer = new RoundTimer(10);
     roundTimer.StartNewRound();
+
+    new ChestItemDropHandler();
   }
 
   // Called on script_reload
@@ -231,7 +260,7 @@ export class GameMode {
     const zombieKilled = EntIndexToHScript(
       event.entindex_killed
     ) as CDOTA_BaseNPC;
-    if (zombieKilled) {
+    if (zombieKilled.GetUnitLabel() === "zombie") {
       spawnedZombies = spawnedZombies.filter(
         (entity) => entity.entindex() !== event.entindex_killed
       );

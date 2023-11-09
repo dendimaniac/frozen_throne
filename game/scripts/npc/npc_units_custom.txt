@@ -171,4 +171,22 @@
 			"XPGain"					"15"
 		}
 	}
+
+  "chest_hospital"
+	{
+		"BaseClass"			"npc_dota_creature"
+		"Model"					"models/props_gameplay/treasure_chest001.vmdl"
+    "ModelScale" 				".9"
+		"UnitLabel"			"hospital"
+		"StatusHealth"				"1"
+	}
+
+  "chest_police_station"
+	{
+		"BaseClass"			"npc_dota_creature"
+		"Model"					"models/props_gameplay/treasure_chest001.vmdl"
+    "ModelScale" 				".9"
+		"UnitLabel"			"police_station"
+		"StatusHealth"				"1"
+	}
 }

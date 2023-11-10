@@ -6,7 +6,7 @@ import { ChestItemDropHandler } from "./ChestItemDropHandler";
 
 const heroSelectionTime = 20;
 // null will not force a hero selection
-const forceHero = "sven";
+const forceHero: string | null = null;
 let spawnedZombies: CDOTA_BaseNPC[] = [];
 let viewRangeParticles: (ViewRangeParticles | undefined)[] = [];
 
@@ -62,13 +62,18 @@ export class GameMode {
       undefined
     );
     ListenToGameEvent(
-      "npc_spawned",
-      (event) => this.OnNpcSpawned(event),
+      "entity_killed",
+      (event) => this.OnEntityKilled(event),
       undefined
     );
     ListenToGameEvent(
-      "entity_killed",
-      (event) => this.OnEntityKilled(event),
+      "dota_player_killed",
+      (event) => this.OnPlayerHeroKilled(event),
+      undefined
+    );
+    ListenToGameEvent(
+      "npc_spawned",
+      (event) => this.OnNpcSpawned(event),
       undefined
     );
 
@@ -128,8 +133,7 @@ export class GameMode {
       });
 
       // Also apply the panic modifier to the sending player's hero
-      const hero = player.GetAssignedHero();
-      hero.AddItemByName("item_blink");
+      // const hero = player.GetAssignedHero();
       // hero.AddNewModifier(hero, undefined, modifier_panic.name, {
       //   duration: 1,
       // });
@@ -149,7 +153,7 @@ export class GameMode {
     gameModeEntity.SetFogOfWarDisabled(true);
     gameModeEntity.SetDaynightCycleDisabled(true);
 
-    if (forceHero != null) {
+    if (forceHero !== null) {
       gameModeEntity.SetCustomGameForceHero(forceHero);
     }
   }
@@ -234,25 +238,6 @@ export class GameMode {
     // Do some stuff here
   }
 
-  private OnNpcSpawned(event: NpcSpawnedEvent) {
-    // // After a hero unit spawns, apply modifier_panic for 8 seconds
-    // const unit = EntIndexToHScript(event.entindex) as CDOTA_BaseNPC; // Cast to npc since this is the 'npc_spawned' event
-    // // Give all real heroes (not illusions) the meepo_earthbind_ts_example spell
-    // if (unit.IsRealHero()) {
-    //   if (!unit.HasAbility("meepo_earthbind_ts_example")) {
-    //     // Add lua ability to the unit
-    //     unit.AddAbility("meepo_earthbind_ts_example");
-    //   }
-    // }
-    // const entH = EntIndexToHScript(event.entindex) as CDOTA_BaseNPC;
-    // if (entH) {
-    //   print(`TEST: Entity name: ${entH.GetUnitLabel()}`);
-    //   if (entH.GetUnitLabel() === "zombie") {
-    //     numOfZombies = numOfZombies + 1;
-    //   }
-    // }
-  }
-
   private OnEntityKilled(event: EntityKilledEvent) {
     const zombieKilled = EntIndexToHScript(
       event.entindex_killed
@@ -270,6 +255,41 @@ export class GameMode {
         viewRangeParticles = viewRangeParticles.splice(
           viewRangeParticles.indexOf(particle),
           1
+        );
+      }
+    }
+  }
+
+  private OnPlayerHeroKilled(event: DotaPlayerKilledEvent) {
+    const player = PlayerResource.GetPlayer(event.PlayerID);
+    if (player) {
+      const hero = player.GetAssignedHero();
+      hero.SetTimeUntilRespawn(0);
+      for (let i = 0; i < 9; i++) {
+        const item = hero.GetItemInSlot(i);
+        if (item) {
+          const itemToDrop = CreateItem(item.GetName(), undefined, undefined);
+          const pos = hero.GetAbsOrigin();
+          CreateItemOnPositionSync(pos, itemToDrop);
+          const pos_launch = (pos +
+            RandomVector(RandomFloat(150, 200))) as Vector;
+          itemToDrop!.LaunchLoot(false, 200, 0.75, pos_launch, undefined);
+        }
+      }
+    }
+  }
+
+  private OnNpcSpawned(event: NpcSpawnedEvent) {
+    const oldHero = EntIndexToHScript(event.entindex) as CDOTA_BaseNPC_Hero;
+    if (oldHero && oldHero.IsRealHero()) {
+      oldHero.AddItemByName("item_blink");
+      if (event.is_respawn > 0) {
+        const playerId = oldHero.GetPlayerOwnerID();
+        PlayerResource.ReplaceHeroWith(
+          playerId,
+          "npc_dota_hero_meepo",
+          oldHero.GetGold(),
+          oldHero.GetCurrentXP()
         );
       }
     }

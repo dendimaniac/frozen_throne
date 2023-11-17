@@ -15,6 +15,11 @@ export class ChestItemDropHandler {
       (event) => this.OnEntityKilled(event),
       undefined
     );
+    ListenToGameEvent(
+      "npc_spawned",
+      (event) => this.OnNpcSpawned(event),
+      undefined
+    );
   }
 
   private OnEntityKilled(event: EntityKilledEvent) {
@@ -50,6 +55,25 @@ export class ChestItemDropHandler {
           DotaTeam.NEUTRALS
         );
       }
+    }
+  }
+
+  OnNpcSpawned(event: NpcSpawnedEvent): void {
+    const entitySpawned = EntIndexToHScript(event.entindex) as CDOTA_BaseNPC;
+    const unitName = entitySpawned.GetUnitName();
+    if (unitName.includes("chest")) {
+      const itemSets =
+        this.itemDropsRate[entitySpawned.GetUnitLabel()].ItemSets;
+      const possibleItemNames = Object.keys(itemSets);
+      possibleItemNames
+        .sort((a, b) => {
+          if (itemSets[a] > itemSets[b]) return -1;
+          if (itemSets[b] > itemSets[a]) return 1;
+          return 0;
+        })
+        .map((itemName) => {
+          entitySpawned.AddItemByName(itemName);
+        });
     }
   }
 }

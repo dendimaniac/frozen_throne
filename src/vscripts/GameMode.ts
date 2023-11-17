@@ -156,6 +156,7 @@ export class GameMode {
     if (forceHero !== null) {
       gameModeEntity.SetCustomGameForceHero(forceHero);
     }
+    new ChestItemDropHandler();
   }
 
   public OnStateChange(): void {
@@ -228,7 +229,6 @@ export class GameMode {
     );
 
     new RoundTimer(10);
-    new ChestItemDropHandler();
   }
 
   // Called on script_reload

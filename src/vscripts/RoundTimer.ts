@@ -13,34 +13,31 @@ export class RoundTimer {
 
   constructor(maxRoundTimer: number) {
     this.maxRoundTimer = startDelay;
-    this.UpdateRoundTimer(0);
-    this.StartNewRound(false);
+    this.UpdateRoundTimer(startDelay);
+    this.StartNewRound(false, maxRoundTimer);
     this.gameMode = GameRules.GetGameModeEntity();
     GameRules.SetTimeOfDay(nightTime);
-
-    Timers.CreateTimer(startDelay, () => {
-      this.ClearRoundTimer();
-      this.maxRoundTimer = maxRoundTimer;
-      this.StartNewRound();
-    });
   }
 
-  private StartNewRound(switchDayNight: boolean = true) {
+  private StartNewRound(
+    switchDayNight: boolean = true,
+    newMaxRoundTimer: number = 0,
+    startDelay: number = 0
+  ) {
     if (switchDayNight) {
       GameRules.SetTimeOfDay(GameRules.IsDaytime() ? nightTime : dayTime);
     }
     this.createdTimer = Timers.CreateTimer(
-      {
-        callback: () => {
-          if (this.currentRoundTimer === this.maxRoundTimer) {
-            this.ClearRoundTimer();
-            this.StartNewRound();
-            return;
-          }
-          this.UpdateRoundTimer(this.currentRoundTimer + 1);
-          return 1;
-        },
-        useGameTime: true,
+      startDelay,
+      () => {
+        this.UpdateRoundTimer(this.currentRoundTimer - 1);
+        if (this.currentRoundTimer === 0) {
+          if (newMaxRoundTimer > 0) this.maxRoundTimer = newMaxRoundTimer;
+          this.ClearRoundTimer();
+          this.StartNewRound(true, 0, 1);
+          return;
+        }
+        return 1;
       },
       this
     );
@@ -48,13 +45,13 @@ export class RoundTimer {
 
   public ForceEndRound() {
     this.ClearRoundTimer();
-    this.UpdateRoundTimer(this.maxRoundTimer);
+    this.UpdateRoundTimer(0);
   }
 
   private ClearRoundTimer() {
     Timers.RemoveTimer(this.createdTimer);
     this.createdTimer = "";
-    this.UpdateRoundTimer(0);
+    this.UpdateRoundTimer(this.maxRoundTimer);
   }
 
   private UpdateRoundTimer(newValue: number) {

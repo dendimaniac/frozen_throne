@@ -1,15 +1,21 @@
 import { BaseModifier, registerModifier } from "../lib/dota_ts_adapter";
 
-const AI_STATE_IDLE = 0;
-const AI_STATE_AGGRESSIVE = 1;
-const AI_STATE_RETURNING = 2;
+const AI_STATE_PATROLLING = 0;
+const AI_STATE_PATROLL_WAIT = 1;
+const AI_STATE_AGGRESSIVE = 2;
+const AI_STATE_RETURNING = 3;
 
 const AI_THINK_INTERVAL = 0.5;
 
+const PATROL_WAIT_INTERVAL = 1;
+
 type State =
-  | typeof AI_STATE_IDLE
+  | typeof AI_STATE_PATROLLING
+  | typeof AI_STATE_PATROLL_WAIT
   | typeof AI_STATE_AGGRESSIVE
   | typeof AI_STATE_RETURNING;
+
+let doneWithPatrolCount = 0;
 
 @registerModifier()
 export class modifier_neutral_ai extends BaseModifier {
@@ -17,44 +23,84 @@ export class modifier_neutral_ai extends BaseModifier {
   aggroRange!: number;
   leashRange!: number;
   unit!: CDOTA_BaseNPC;
-  spawnPos!: Vector;
   aggroTarget!: CDOTA_BaseNPC;
   stateActions!: { [key: number]: (context: any) => void };
+  targetPatrol!: Vector;
+  returnPoint!: Vector;
+  returnState!: State;
+  patrolWaitTimer: string | undefined;
+  firstPatrol!: Vector;
+  secondPatrol!: Vector;
+  prevPatrolPosition!: Vector;
+  stuckCounter: number = 0;
 
-  IdleThink(context: this): void {
-    if (!context.unit) return;
+  PatrolThink(context: this): void {
+    const EnemyFound = context.CheckIfEnemyFound(context);
+    if (EnemyFound) return;
 
-    const units = FindUnitsInRadius(
-      context.unit.GetTeam(),
-      context.unit.GetAbsOrigin(),
-      undefined,
-      context.aggroRange,
-      UnitTargetTeam.ENEMY,
-      UnitTargetType.ALL,
-      UnitTargetFlags.NONE,
-      FindOrder.ANY,
-      false
+    const currentPosition = context.unit.GetAbsOrigin();
+    const distanceToPatrol = context.GetDistanceBetweenTwoPositions(
+      currentPosition,
+      context.targetPatrol
     );
+    // print(`TEST: Distance to patrol: ${distanceToPatrol}`);
+    if (distanceToPatrol < 0.05) {
+      context.state = AI_STATE_PATROLL_WAIT;
+      return;
+    }
 
-    if (units.length === 0) return;
+    if (context.stuckCounter === 5) {
+      context.stuckCounter = 0;
+      context.state = AI_STATE_PATROLL_WAIT;
+      if (context.targetPatrol === context.firstPatrol)
+        context.firstPatrol = currentPosition;
+      else context.secondPatrol = currentPosition;
+      context.targetPatrol = currentPosition;
+      return;
+    }
 
-    context.aggroTarget = units[0];
-    context.unit.MoveToTargetToAttack(context.aggroTarget);
-    context.state = AI_STATE_AGGRESSIVE;
+    if (context.prevPatrolPosition === currentPosition) {
+      context.stuckCounter++;
+    }
+
+    context.prevPatrolPosition = currentPosition;
+    context.unit.MoveToPosition(context.targetPatrol);
+  }
+
+  PatrolWaitThink(context: this): void {
+    if (context.CheckIfEnemyFound(context)) {
+      if (context.patrolWaitTimer) Timers.RemoveTimer(context.patrolWaitTimer);
+      context.patrolWaitTimer = undefined;
+      return;
+    }
+
+    if (!context.patrolWaitTimer) {
+      context.patrolWaitTimer = Timers.CreateTimer(PATROL_WAIT_INTERVAL, () => {
+        Timers.RemoveTimer(context.patrolWaitTimer!);
+        context.patrolWaitTimer = undefined;
+        context.targetPatrol =
+          context.targetPatrol === context.firstPatrol
+            ? context.secondPatrol
+            : context.firstPatrol;
+        context.state = AI_STATE_PATROLLING;
+        return;
+      });
+    }
   }
 
   AggressiveThink(context: this): void {
-    const distanceToSpawnPos = (
-      (context.spawnPos - context.unit.GetAbsOrigin()) as Vector
-    ).Length();
-    if (distanceToSpawnPos > context.leashRange) {
-      context.unit.MoveToPosition(context.spawnPos);
+    const distanceToReturnPoint = context.GetDistanceBetweenTwoPositions(
+      context.returnPoint,
+      context.unit.GetAbsOrigin()
+    );
+    if (distanceToReturnPoint > context.leashRange) {
+      context.unit.MoveToPosition(context.returnPoint);
       context.state = AI_STATE_RETURNING;
       return;
     }
 
     if (!context.aggroTarget.IsAlive()) {
-      context.unit.MoveToPosition(context.spawnPos);
+      context.unit.MoveToPosition(context.returnPoint);
       context.state = AI_STATE_RETURNING;
       return;
     }
@@ -63,26 +109,29 @@ export class modifier_neutral_ai extends BaseModifier {
   }
 
   ReturningThink(context: this): void {
-    const distanceToSpawnPos = (
-      (context.spawnPos - context.unit.GetAbsOrigin()) as Vector
-    ).Length();
-    if (distanceToSpawnPos < 10) {
-      context.state = AI_STATE_IDLE;
+    const distanceToSpawnPos = context.GetDistanceBetweenTwoPositions(
+      context.returnPoint,
+      context.unit.GetAbsOrigin()
+    );
+    if (distanceToSpawnPos < 0.05) {
+      context.state = context.returnState;
       return;
     }
 
-    context.unit.MoveToPosition(context.spawnPos);
+    context.unit.MoveToPosition(context.returnPoint);
   }
 
   OnCreated(params: { aggroRange: number; leashRange: number }): void {
     if (IsServer()) {
-      this.state = AI_STATE_IDLE;
+      this.state = AI_STATE_PATROLLING;
       this.unit = this.GetParent();
-      this.spawnPos = this.unit.GetAbsOrigin();
+      const spawnPos = this.unit.GetAbsOrigin();
+      this.firstPatrol = spawnPos;
       this.aggroRange = params.aggroRange;
       this.leashRange = params.leashRange;
       this.stateActions = {
-        [AI_STATE_IDLE]: this.IdleThink,
+        [AI_STATE_PATROLLING]: this.PatrolThink,
+        [AI_STATE_PATROLL_WAIT]: this.PatrolWaitThink,
         [AI_STATE_AGGRESSIVE]: this.AggressiveThink,
         [AI_STATE_RETURNING]: this.ReturningThink,
       };
@@ -95,6 +144,42 @@ export class modifier_neutral_ai extends BaseModifier {
   }
 
   OnIntervalThink(): void {
+    // print(
+    //   `MAINTEST: Current position: ${this.unit.GetAbsOrigin()}, target: ${
+    //     this.targetPatrol
+    //   }`
+    // );
     this.stateActions[this.state](this);
+  }
+
+  GetDistanceBetweenTwoPositions(
+    firstPosition: Vector,
+    secondPosition: Vector
+  ) {
+    return ((firstPosition - secondPosition) as Vector).Length();
+  }
+
+  CheckIfEnemyFound(context: this): boolean {
+    const units = FindUnitsInRadius(
+      context.unit.GetTeam(),
+      context.unit.GetAbsOrigin(),
+      undefined,
+      context.aggroRange,
+      UnitTargetTeam.ENEMY,
+      UnitTargetType.ALL,
+      UnitTargetFlags.NONE,
+      FindOrder.CLOSEST,
+      false
+    );
+
+    if (units.length > 0) {
+      context.aggroTarget = units[0];
+      context.returnPoint = context.unit.GetAbsOrigin();
+      context.returnState = context.state;
+      context.state = AI_STATE_AGGRESSIVE;
+      return true;
+    }
+
+    return false;
   }
 }

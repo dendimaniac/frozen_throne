@@ -1,10 +1,11 @@
 <root>
-    <scripts>
-        <include src="file://{resources}/scripts/custom_game/manifest.js" />
-        <include src="file://{resources}/scripts/custom_game/zombies_range_view.js" />
-    </scripts>
-    <Panel>
-        <CustomUIElement type="Hud" layoutfile="file://{resources}/layout/custom_game/hud.xml" />
-        <CustomUIElement type="Hud" layoutfile="file://{resources}/layout/custom_game/timer_slider.xml" />
-    </Panel>
+  <scripts>
+    <include src="file://{resources}/scripts/custom_game/manifest.js" />
+    <include src="file://{resources}/scripts/custom_game/zombies_range_view.js" />
+  </scripts>
+  <Panel>
+    <CustomUIElement type="Hud" layoutfile="file://{resources}/layout/custom_game/hud.xml" />
+    <CustomUIElement type="Hud" layoutfile="file://{resources}/layout/custom_game/timer_slider.xml" />
+    <CustomUIElement type="Hud" layoutfile="file://{resources}/layout/custom_game/objectives.xml" />
+  </Panel>
 </root>

@@ -1,0 +1,32 @@
+<root>
+  <scripts>
+    <!-- Included JS script files go here -->
+    <include src="file://{resources}/scripts/custom_game/objectives.js" />
+  </scripts>
+
+  <styles>
+    <!-- Included css style files go here -->
+    <!-- <include src="s2r://panorama/styles/dotastyles.css" /> -->
+    <include src="file://{resources}/styles/custom_game/objectives.css" />
+  </styles>
+
+  <snippets>
+    <!-- Snippets go here -->
+  </snippets>
+
+  <Panel hittest="false" class="MainHud">
+    <Panel class="MainPanel">
+      <Label class="Title" text="Objective" />
+      <Panel class="Objective">
+        <Image class="BannerImage" src="file://{resources}/images/custom_game/tstl.png" />
+        <Panel class="DescriptionContainer">
+          <Label class="DescriptionTitle" text="Main" />
+          <Label class="Description" text="Pick up all required items" />
+        </Panel>
+        <Button id="CloseButton" onactivate="OnChangeTeamButtonClicked()">
+          <Label text="Close" />
+        </Button>
+      </Panel>
+    </Panel>
+  </Panel>
+</root>

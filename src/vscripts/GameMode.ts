@@ -195,25 +195,54 @@ export class GameMode {
     print("Game starting!");
 
     // Do some stuff here
+    const availableLocations = [
+      "hospital",
+      "police_station",
+      "grocery_store",
+      "school",
+      "library",
+      "gas_station",
+    ];
     const path = "particles/ui_mouseactions/bounding_area_view_a.vpcf";
     const viewRangeCast = "particles/range_finder_aoe.vpcf";
     const spawner = Entities.FindAllByName("zombie_spawner");
+    const patrolTargets = Entities.FindAllByName("patrol_target");
+    const itemSpawners = Entities.FindAllByName("chest_spawner");
     print(`TEST: spawner count: ${spawner.length}`);
+    print(`TEST: patrolTargets count: ${patrolTargets.length}`);
+    itemSpawners.forEach((sp) => {
+      if (availableLocations.length === 0) return;
+      const isSpawnerEnabled = sp.Attribute_GetIntValue("isEnabled", 0) > 0;
+      if (!isSpawnerEnabled) return;
+
+      const spawnPosition = (sp.GetAbsOrigin() + RandomVector(100)) as Vector;
+      const randomLocationIndex = RandomInt(0, availableLocations.length - 1);
+      const location = availableLocations[randomLocationIndex];
+      CreateUnitByName(
+        `chest_${location}`,
+        spawnPosition,
+        true,
+        undefined,
+        undefined,
+        DotaTeam.NEUTRALS
+      );
+      availableLocations.splice(randomLocationIndex, 1);
+    });
     Timers.CreateTimer(() => {
       spawner.map((sp, index) => {
         // if (Object.keys(spawnedZombies).length == 50) return;
-        print(`TEST: Spawned count: ${Object.keys(spawnedZombies).length}`);
+        // print(`TEST: Spawned count: ${Object.keys(spawnedZombies).length}`);
 
         const specificSpawnerZombies = spawnedZombies[index];
         if (specificSpawnerZombies !== undefined) return;
 
-        let attempts = 0;
-        let distance = 400;
         let spawnPosition = sp.GetAbsOrigin();
+        const target = patrolTargets[index];
+        let patrolPosition = target.GetAbsOrigin();
 
         const newZombie = CreateUnitByName(
           "npc_dota_creature_zombie",
-          sp.GetAbsOrigin(),
+          spawnPosition,
           true,
           undefined,
           undefined,
@@ -223,129 +252,6 @@ export class GameMode {
         const hullRadius = newZombie.GetPaddedCollisionRadius();
         const avoidDistance = modelRadius * 2;
         let shouldRetry = false;
-        do {
-          shouldRetry = false;
-          spawnPosition = (sp.GetAbsOrigin() +
-            RandomVector(distance)) as Vector;
-          spawnPosition = GetGroundPosition(spawnPosition, newZombie);
-          attempts++;
-          if (attempts > 10) {
-            attempts = 0;
-            distance -= 50;
-          }
-          if (distance < 0) {
-            distance = 400;
-          }
-          if (GridNav.IsBlocked(spawnPosition)) shouldRetry = true;
-          else if (GridNav.IsNearbyTree(spawnPosition, modelRadius, true))
-            shouldRetry = true;
-          else if (!GridNav.CanFindPath(sp.GetAbsOrigin(), spawnPosition))
-            shouldRetry = true;
-          else {
-            const hasCollapsingPrev = prevPositions.find(
-              (position) =>
-                this.GetDistanceBetweenTwoPositions(spawnPosition, position) <
-                avoidDistance
-            );
-            if (hasCollapsingPrev) shouldRetry = true;
-          }
-          // print(
-          //   `TEST: IsBlocked: ${GridNav.IsBlocked(
-          //     spawnPosition
-          //   )}, CanFindPath: ${!GridNav.CanFindPath(
-          //     sp.GetAbsOrigin(),
-          //     spawnPosition
-          //   )}, IsNearbyTree: ${GridNav.IsNearbyTree(
-          //     spawnPosition,
-          //     modelRadius,
-          //     true
-          //   )}`
-          // );
-        } while (shouldRetry);
-        print(
-          `TEST: Found length ${
-            prevPositions.filter(
-              (position) =>
-                this.GetDistanceBetweenTwoPositions(spawnPosition, position) <
-                avoidDistance
-            ).length
-          }`
-        );
-        newZombie.SetAbsOrigin(spawnPosition);
-        prevPositions.push(spawnPosition);
-        print(``);
-        print(`TEST: PAST!`);
-        print(``);
-        let patrolPosition: Vector = sp.GetAbsOrigin();
-        attempts = 0;
-        const minDistance = distance;
-        distance = distance * 2;
-        do {
-          shouldRetry = false;
-          if (distance < minDistance) {
-            distance = minDistance;
-          }
-          if (attempts > 10) {
-            attempts = 0;
-            distance -= 50;
-          }
-          attempts++;
-          patrolPosition = (spawnPosition + RandomVector(distance)) as Vector;
-          patrolPosition = GetGroundPosition(patrolPosition, newZombie);
-          // print(
-          //   `TEST: Distance: ${distance}, Attempt: ${attempts} IsBlocked: ${GridNav.IsBlocked(
-          //     patrolPosition
-          //   )}, CanFindPath: ${!GridNav.CanFindPath(
-          //     spawnPosition,
-          //     patrolPosition
-          //   )}, IsNearbyTree: ${GridNav.IsNearbyTree(
-          //     patrolPosition,
-          //     modelRadius,
-          //     true
-          //   )}, PathLength: ${
-          //     GridNav.FindPathLength(spawnPosition, patrolPosition) > distance
-          //   }`
-          // );
-          if (GridNav.IsBlocked(patrolPosition)) shouldRetry = true;
-          else if (GridNav.IsNearbyTree(patrolPosition, modelRadius, true))
-            shouldRetry = true;
-          else if (!GridNav.CanFindPath(spawnPosition, patrolPosition))
-            shouldRetry = true;
-          else if (
-            GridNav.FindPathLength(spawnPosition, patrolPosition) > distance
-          )
-            shouldRetry = true;
-          // else {
-          //   const hasCollapsingPrev = prevPositions.find(
-          //     (position) =>
-          //       this.GetDistanceBetweenTwoPositions(patrolPosition, position) <
-          //       avoidDistance
-          //   );
-          //   if (hasCollapsingPrev) shouldRetry = true;
-          // }
-        } while (shouldRetry);
-        print(
-          `TEST: Found length ${
-            prevPositions.filter(
-              (position) =>
-                this.GetDistanceBetweenTwoPositions(patrolPosition, position) <
-                avoidDistance
-            ).length
-          }`
-        );
-        // prevPositions.map((position) => {
-        //   if (position === spawnPosition || position === patrolPosition) return;
-
-        //   print(
-        //     `TEST: Patrol closeby: ${
-        //       GridNav.FindPathLength(position, patrolPosition) < hullRadius
-        //     }, radius: ${hullRadius}`
-        //   );
-        // });
-        prevPositions.push(patrolPosition);
-        print(``);
-        print(`TEST: DONEEE!`);
-        print(``);
         const pathEffectIndicator = ParticleManager.CreateParticle(
           path,
           ParticleAttachment.WORLDORIGIN,
@@ -399,26 +305,6 @@ export class GameMode {
       return 10.0;
     });
 
-    let position = (spawner[0].GetAbsOrigin() + RandomVector(100)) as Vector;
-    CreateUnitByName(
-      "chest_hospital",
-      position,
-      true,
-      undefined,
-      undefined,
-      DotaTeam.NEUTRALS
-    );
-
-    position = (spawner[0].GetAbsOrigin() + RandomVector(200)) as Vector;
-    CreateUnitByName(
-      "chest_police_station",
-      position,
-      true,
-      undefined,
-      undefined,
-      DotaTeam.NEUTRALS
-    );
-
     new RoundTimer(10);
   }
 
@@ -427,13 +313,6 @@ export class GameMode {
     print("Script reloaded!");
 
     // Do some stuff here
-  }
-
-  private GetDistanceBetweenTwoPositions(
-    firstPosition: Vector,
-    secondPosition: Vector
-  ) {
-    return ((firstPosition - secondPosition) as Vector).Length();
   }
 
   private OnEntityKilled(event: EntityKilledEvent) {

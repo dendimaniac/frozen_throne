@@ -31,8 +31,6 @@ export class modifier_neutral_ai extends BaseModifier {
   patrolWaitTimer: string | undefined;
   firstPatrol!: Vector;
   secondPatrol!: Vector;
-  prevPatrolPosition!: Vector;
-  stuckCounter: number = 0;
 
   PatrolThink(context: this): void {
     const EnemyFound = context.CheckIfEnemyFound(context);
@@ -49,21 +47,6 @@ export class modifier_neutral_ai extends BaseModifier {
       return;
     }
 
-    if (context.stuckCounter === 5) {
-      context.stuckCounter = 0;
-      context.state = AI_STATE_PATROLL_WAIT;
-      if (context.targetPatrol === context.firstPatrol)
-        context.firstPatrol = currentPosition;
-      else context.secondPatrol = currentPosition;
-      context.targetPatrol = currentPosition;
-      return;
-    }
-
-    if (context.prevPatrolPosition === currentPosition) {
-      context.stuckCounter++;
-    }
-
-    context.prevPatrolPosition = currentPosition;
     context.unit.MoveToPosition(context.targetPatrol);
   }
 

@@ -189,4 +189,40 @@
 		"UnitLabel"			"police_station"
 		"StatusHealth"				"1"
 	}
+
+  "chest_grocery_store"
+	{
+		"BaseClass"			"npc_dota_creature"
+		"Model"					"models/props_gameplay/treasure_chest001.vmdl"
+    "ModelScale" 				".9"
+		"UnitLabel"			"grocery_store"
+		"StatusHealth"				"1"
+	}
+
+  "chest_school"
+	{
+		"BaseClass"			"npc_dota_creature"
+		"Model"					"models/props_gameplay/treasure_chest001.vmdl"
+    "ModelScale" 				".9"
+		"UnitLabel"			"school"
+		"StatusHealth"				"1"
+	}
+
+  "chest_library"
+	{
+		"BaseClass"			"npc_dota_creature"
+		"Model"					"models/props_gameplay/treasure_chest001.vmdl"
+    "ModelScale" 				".9"
+		"UnitLabel"			"library"
+		"StatusHealth"				"1"
+	}
+
+  "chest_gas_station"
+	{
+		"BaseClass"			"npc_dota_creature"
+		"Model"					"models/props_gameplay/treasure_chest001.vmdl"
+    "ModelScale" 				".9"
+		"UnitLabel"			"gas_station"
+		"StatusHealth"				"1"
+	}
 }

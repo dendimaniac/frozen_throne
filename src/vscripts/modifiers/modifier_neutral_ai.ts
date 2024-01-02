@@ -15,8 +15,6 @@ type State =
   | typeof AI_STATE_AGGRESSIVE
   | typeof AI_STATE_RETURNING;
 
-let doneWithPatrolCount = 0;
-
 @registerModifier()
 export class modifier_neutral_ai extends BaseModifier {
   state!: State;

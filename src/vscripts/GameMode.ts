@@ -3,6 +3,7 @@ import { modifier_panic } from "./modifiers/modifier_panic";
 import { modifier_neutral_ai } from "./modifiers/modifier_neutral_ai";
 import { RoundTimer } from "./RoundTimer";
 import { ChestItemDropHandler } from "./ChestItemDropHandler";
+import { modifier_no_health_regen } from "./modifiers/modifier_no_health_regen";
 
 const heroSelectionTime = 20;
 // null will not force a hero selection
@@ -146,6 +147,11 @@ export class GameMode {
         myArrayOfNumbers: [1.414, 2.718, 3.142],
       });
 
+      // const gateEntities = Entities.FindAllByName("gate") as CDOTA_BaseNPC[];
+      // gateEntities.forEach((gate) => {
+      //   gate.RemoveModifierByName("modifier_invulnerable");
+      // });
+
       // Also apply the panic modifier to the sending player's hero
       // const hero = player.GetAssignedHero();
       // hero.AddNewModifier(hero, undefined, modifier_panic.name, {
@@ -166,6 +172,7 @@ export class GameMode {
     const gameModeEntity = GameRules.GetGameModeEntity();
     gameModeEntity.SetFogOfWarDisabled(true);
     gameModeEntity.SetDaynightCycleDisabled(true);
+    gameModeEntity.SetCustomAttributeDerivedStatValue(AttributeDerivedStats.STRENGTH_HP_REGEN, 0)
 
     if (forceHero !== null) {
       gameModeEntity.SetCustomGameForceHero(forceHero);
@@ -249,9 +256,6 @@ export class GameMode {
           DotaTeam.NEUTRALS
         );
         const modelRadius = newZombie.GetModelRadius();
-        const hullRadius = newZombie.GetPaddedCollisionRadius();
-        const avoidDistance = modelRadius * 2;
-        let shouldRetry = false;
         const pathEffectIndicator = ParticleManager.CreateParticle(
           path,
           ParticleAttachment.WORLDORIGIN,
@@ -373,6 +377,13 @@ export class GameMode {
   private OnNpcSpawned(event: NpcSpawnedEvent) {
     const oldHero = EntIndexToHScript(event.entindex) as CDOTA_BaseNPC_Hero;
     if (oldHero && oldHero.IsRealHero()) {
+      oldHero.AddNewModifier(
+        oldHero,
+        undefined,
+        modifier_no_health_regen.name,
+        undefined
+      );
+      print(`TEST: Weaver: ${oldHero.GetModifierNameByIndex(0)}`);
       oldHero.AddItemByName("item_blink");
       if (event.is_respawn > 0) {
         const playerId = oldHero.GetPlayerOwnerID();

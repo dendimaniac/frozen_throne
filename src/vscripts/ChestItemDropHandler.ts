@@ -30,8 +30,18 @@ export class ChestItemDropHandler {
     if (unitName.includes("chest")) {
       const itemSets = this.itemDropsRate[entityKilled.GetUnitLabel()].ItemSets;
       const possibleItemKeys = Object.keys(itemSets);
-      const itemName =
-        possibleItemKeys[RandomInt(0, possibleItemKeys.length - 1)];
+      const mappedItemKeys = possibleItemKeys.reduce<string[]>(
+        (prevVal, currentVal) => {
+          const currentCount = itemSets[currentVal];
+          for (let index = 0; index < currentCount; index++) {
+            prevVal = prevVal.concat(currentVal);
+          }
+          return prevVal;
+        },
+        []
+      );
+      DeepPrintTable(mappedItemKeys);
+      const itemName = mappedItemKeys[RandomInt(0, mappedItemKeys.length - 1)];
       itemSets[itemName]--;
       print(`TEST: Name: ${itemName}, value: ${itemSets[itemName]}`);
       if (itemSets[itemName] === 0) {

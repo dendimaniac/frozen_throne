@@ -25,6 +25,8 @@ declare global {
 
 @reloadable
 export class GameMode {
+  wasRespawned: boolean;
+
   public static Precache(this: void, context: CScriptPrecacheContext) {
     PrecacheResource(
       "particle",
@@ -52,6 +54,11 @@ export class GameMode {
       "models/props_gameplay/treasure_chest001.vmdl",
       context
     );
+    PrecacheResource(
+      "model",
+      "models/props_generic/chest_treasure_04.vmdl",
+      context
+    );
   }
 
   public static Activate(this: void) {
@@ -61,6 +68,8 @@ export class GameMode {
 
   constructor() {
     this.configure();
+
+    this.wasRespawned = false;
 
     // Register event listeners for dota engine events
     ListenToGameEvent(
@@ -170,13 +179,37 @@ export class GameMode {
     GameRules.SetPostGameTime(5);
     GameRules.SetHeroSelectionTime(heroSelectionTime);
     const gameModeEntity = GameRules.GetGameModeEntity();
-    gameModeEntity.SetFogOfWarDisabled(true);
+    gameModeEntity.SetFogOfWarDisabled(false);
     gameModeEntity.SetDaynightCycleDisabled(true);
-    gameModeEntity.SetCustomAttributeDerivedStatValue(AttributeDerivedStats.STRENGTH_HP_REGEN, 0)
+    gameModeEntity.SetCustomAttributeDerivedStatValue(
+      AttributeDerivedStats.STRENGTH_HP_REGEN,
+      0
+    );
 
     if (forceHero !== null) {
       gameModeEntity.SetCustomGameForceHero(forceHero);
     }
+
+    gameModeEntity.SetItemAddedToInventoryFilter((event) => {
+      const inventoryParent = EntIndexToHScript(
+        event.inventory_parent_entindex_const
+      ) as CDOTA_BaseNPC | undefined;
+      const itemEntIndex = EntIndexToHScript(event.item_entindex_const) as
+        | CDOTA_BaseNPC
+        | undefined;
+      if (
+        inventoryParent &&
+        inventoryParent.GetUnitName() === "objective_stash"
+      ) {
+        if (itemEntIndex && itemEntIndex.GetName() === "item_gem") {
+          print(`ItemEntIndex: ${itemEntIndex.GetName()}`);
+          return true;
+        }
+        return false;
+      }
+
+      return true;
+    }, this);
     new ChestItemDropHandler();
   }
 
@@ -195,6 +228,25 @@ export class GameMode {
     // Start game once pregame hits
     if (state === GameState.PRE_GAME) {
       Timers.CreateTimer(0.2, () => this.StartGame());
+    }
+
+    if (state === GameState.GAME_IN_PROGRESS) {
+      print(`${Entities.GetLocalPlayer()}`);
+      // print(`${Entities.GetLocalPlayer().GetPlayerID()}`);
+      const localPlayerId = 0;
+      const objectStashPoint = Entities.FindByName(
+        undefined,
+        "objective_stash_location"
+      )!;
+      const stashEntity = CreateUnitByName(
+        `objective_stash`,
+        objectStashPoint.GetAbsOrigin(),
+        true,
+        undefined,
+        undefined,
+        DotaTeam.GOODGUYS
+      );
+      // stashEntity.SetControllableByPlayer(localPlayerId, true);
     }
   }
 
@@ -215,8 +267,6 @@ export class GameMode {
     const spawner = Entities.FindAllByName("zombie_spawner");
     const patrolTargets = Entities.FindAllByName("patrol_target");
     const itemSpawners = Entities.FindAllByName("chest_spawner");
-    print(`TEST: spawner count: ${spawner.length}`);
-    print(`TEST: patrolTargets count: ${patrolTargets.length}`);
     itemSpawners.forEach((sp) => {
       if (availableLocations.length === 0) return;
       const isSpawnerEnabled = sp.Attribute_GetIntValue("isEnabled", 0) > 0;
@@ -231,7 +281,7 @@ export class GameMode {
         true,
         undefined,
         undefined,
-        DotaTeam.NEUTRALS
+        DotaTeam.CUSTOM_1
       );
       availableLocations.splice(randomLocationIndex, 1);
     });
@@ -253,7 +303,7 @@ export class GameMode {
           true,
           undefined,
           undefined,
-          DotaTeam.NEUTRALS
+          DotaTeam.CUSTOM_1
         );
         const modelRadius = newZombie.GetModelRadius();
         const pathEffectIndicator = ParticleManager.CreateParticle(
@@ -359,10 +409,11 @@ export class GameMode {
     const player = PlayerResource.GetPlayer(event.PlayerID);
     if (player) {
       const hero = player.GetAssignedHero();
-      hero.SetTimeUntilRespawn(0);
+      hero.SetTimeUntilRespawn(3);
       for (let i = 0; i < 9; i++) {
         const item = hero.GetItemInSlot(i);
         if (item) {
+          hero.RemoveItem(item);
           const itemToDrop = CreateItem(item.GetName(), undefined, undefined);
           const pos = hero.GetAbsOrigin();
           CreateItemOnPositionSync(pos, itemToDrop);
@@ -377,15 +428,15 @@ export class GameMode {
   private OnNpcSpawned(event: NpcSpawnedEvent) {
     const oldHero = EntIndexToHScript(event.entindex) as CDOTA_BaseNPC_Hero;
     if (oldHero && oldHero.IsRealHero()) {
+      print(`${event.is_respawn}`);
       oldHero.AddNewModifier(
         oldHero,
         undefined,
         modifier_no_health_regen.name,
         undefined
       );
-      print(`TEST: Weaver: ${oldHero.GetModifierNameByIndex(0)}`);
-      oldHero.AddItemByName("item_blink");
       if (event.is_respawn > 0) {
+        this.wasRespawned = true;
         const playerId = oldHero.GetPlayerOwnerID();
         PlayerResource.ReplaceHeroWith(
           playerId,
@@ -393,6 +444,11 @@ export class GameMode {
           oldHero.GetGold(),
           oldHero.GetCurrentXP()
         );
+      } else {
+        if (!this.wasRespawned) {
+          oldHero.AddItemByName("item_blink");
+        }
+        this.wasRespawned = false;
       }
     }
   }

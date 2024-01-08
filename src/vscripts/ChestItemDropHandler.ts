@@ -62,7 +62,7 @@ export class ChestItemDropHandler {
           true,
           undefined,
           undefined,
-          DotaTeam.NEUTRALS
+          entityKilled.GetTeam()
         );
       }
     }

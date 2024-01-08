@@ -119,8 +119,9 @@
 		"AttackDamageMax"			"150"		// Damage range max.
 		"AttackRate"				"1.6"		// Speed of attack.
 		"AttackAnimationPoint"		"0.4"		// Normalized time in animation cycle to attack.
-		"AttackAcquisitionRange"	"400"		// Range within a target can be acquired.
+		"AttackAcquisitionRange"	"200"		// Range within a target can be acquired.
 		"AttackRange"				"125"		// Range within a target can be attacked.
+    "AutoAttacksByDefault"      "0"
 
 		// Bounds
 		//----------------------------------------------------------------
@@ -147,8 +148,8 @@
 
 		// Vision
 		//----------------------------------------------------------------
-		"VisionDaytimeRange"		"400"		// Range of vision during day light.
-		"VisionNighttimeRange"		"400"		// Range of vision at night time.
+		"VisionDaytimeRange"		"200"		// Range of vision during day light.
+		"VisionNighttimeRange"		"200"		// Range of vision at night time.
 
 		// Team
 		//----------------------------------------------------------------
@@ -224,5 +225,15 @@
     "ModelScale" 				".9"
 		"UnitLabel"			"gas_station"
 		"StatusHealth"				"1"
+	}
+
+  "objective_stash"
+	{
+		"BaseClass"			"npc_dota_creature"
+		"Model"					"models/props_gameplay/treasure_chest001.vmdl"
+    "ConsideredHero"			"1"
+    "ModelScale" 				".9"
+		"StatusHealth"				"1"
+    "HasInventory" "1"
 	}
 }

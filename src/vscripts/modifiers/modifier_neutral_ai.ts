@@ -31,8 +31,10 @@ export class modifier_neutral_ai extends BaseModifier {
   secondPatrol!: Vector;
 
   PatrolThink(context: this): void {
-    const EnemyFound = context.CheckIfEnemyFound(context);
-    if (EnemyFound) return;
+    const isEnemyFound = context.CheckIfEnemyFound(context);
+    if (isEnemyFound) {
+      return;
+    }
 
     const currentPosition = context.unit.GetAbsOrigin();
     const distanceToPatrol = context.GetDistanceBetweenTwoPositions(
@@ -148,7 +150,7 @@ export class modifier_neutral_ai extends BaseModifier {
       context.aggroRange,
       UnitTargetTeam.ENEMY,
       UnitTargetType.ALL,
-      UnitTargetFlags.NONE,
+      UnitTargetFlags.RESPECT_OBSTRUCTIONS | UnitTargetFlags.FOW_VISIBLE,
       FindOrder.CLOSEST,
       false
     );

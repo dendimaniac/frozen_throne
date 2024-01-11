@@ -8,15 +8,6 @@ export interface TriggerEvent {
   caller: CBaseEntity;
 }
 
-@reloadable
-export class ChestItemDropHandler {
-  self!: CBaseEntity;
-
-  constructor() {
-    print(`TEST: Here`);
-  }
-}
-
 registerEntityFunction("OnStartTouch", (trigger: TriggerEvent) => {
   const triggerName = trigger.caller.GetName();
   const gateNum = parseInt(triggerName.split("_").pop()!);

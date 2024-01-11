@@ -4,13 +4,24 @@
 "DOTAHeroes"
 {
 	//=================================================================================================================
-	// HERO: Templar Assassin
+	// HERO: Weaver
 	//=================================================================================================================
-	"npc_dota_hero_templar_assassin_template"
+	"npc_dota_hero_weaver"
 	{
-		"override_hero"				"npc_dota_hero_templar_assassin"			// Hero to override
-		"Ability1"					"templar_assassin_refraction_holdout"		// Ability 1
-		"Ability2"					"templar_assassin_laguna_blade"
-		"VisionNighttimeRange"		"1800"										// Range of vision at night time.
+		"override_hero"				"npc_dota_hero_weaver"
+		"Ability1"						""
+		"Ability2"						""
+		"Ability3"						""
+		"Ability4"						""
+		"Ability6"						""
+
+		"Ability10"						""
+		"Ability11"						""
+		"Ability12"						""
+		"Ability13"						""
+		"Ability14"						""
+		"Ability15"						""
+		"Ability16"						""
+		"Ability17"						""
 	}
 }

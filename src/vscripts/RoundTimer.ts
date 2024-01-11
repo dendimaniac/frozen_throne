@@ -4,37 +4,62 @@ const dayTime = 0.3;
 const nightTime = 0.8;
 const startDelay = 5;
 
+export enum TimeOfDay {
+  Day,
+  Night,
+}
+
 @reloadable
 export class RoundTimer {
   maxRoundTimer: number = 0;
   currentRoundTimer: number = 0;
   createdTimer: string = "";
   gameMode: CDOTABaseGameMode;
+  roundPast: number = 0;
+  nightPast: number = 0;
+  onCycleUpdatedHandler: Array<
+    (timeOfDay: TimeOfDay, roundPast: number, nightPast: number) => void
+  > = [];
+  onRoundTimerUpdatedHandler: Array<(roundTimer: number) => void> = [];
 
   constructor(maxRoundTimer: number) {
     this.maxRoundTimer = startDelay;
-    this.UpdateRoundTimer(startDelay);
-    this.StartNewRound(false, maxRoundTimer);
+    this.updateRoundTimer(startDelay);
+    this.startNewRound(false, maxRoundTimer);
     this.gameMode = GameRules.GetGameModeEntity();
-    GameRules.SetTimeOfDay(nightTime);
+    GameRules.SetTimeOfDay(dayTime);
   }
 
-  private StartNewRound(
+  public addOnCycleUpdatedHandler(
+    method: (timeOfDay: TimeOfDay, roundPast: number, nightPast: number) => void
+  ) {
+    this.onCycleUpdatedHandler.push(method);
+  }
+
+  public addOnRoundTimerUpdatedHandler(method: (roundTimer: number) => void) {
+    this.onRoundTimerUpdatedHandler.push(method);
+  }
+
+  private startNewRound(
     switchDayNight: boolean = true,
     newMaxRoundTimer: number = 0,
     startDelay: number = 0
   ) {
     if (switchDayNight) {
-      GameRules.SetTimeOfDay(GameRules.IsDaytime() ? nightTime : dayTime);
+      const wasDayTime = GameRules.IsDaytime();
+      if (!wasDayTime) this.nightPast++;
+      GameRules.SetTimeOfDay(wasDayTime ? nightTime : dayTime);
+      this.roundPast++;
+      this.alertCycleUpdated(!wasDayTime);
     }
     this.createdTimer = Timers.CreateTimer(
       startDelay,
       () => {
-        this.UpdateRoundTimer(this.currentRoundTimer - 1);
+        this.updateRoundTimer(this.currentRoundTimer - 1);
         if (this.currentRoundTimer === 0) {
           if (newMaxRoundTimer > 0) this.maxRoundTimer = newMaxRoundTimer;
-          this.ClearRoundTimer();
-          this.StartNewRound(true, 0, 1);
+          this.clearRoundTimer();
+          this.startNewRound(true, 0, 1);
           return;
         }
         return 1;
@@ -44,21 +69,34 @@ export class RoundTimer {
   }
 
   public ForceEndRound() {
-    this.ClearRoundTimer();
-    this.UpdateRoundTimer(0);
+    this.clearRoundTimer();
+    this.updateRoundTimer(0);
   }
 
-  private ClearRoundTimer() {
+  private clearRoundTimer() {
     Timers.RemoveTimer(this.createdTimer);
     this.createdTimer = "";
-    this.UpdateRoundTimer(this.maxRoundTimer);
+    this.updateRoundTimer(this.maxRoundTimer);
   }
 
-  private UpdateRoundTimer(newValue: number) {
+  private updateRoundTimer(newValue: number) {
     this.currentRoundTimer = newValue;
+    this.alertRoundTimerUpdated();
     CustomGameEventManager.Send_ServerToAllClients("round_time_updated", {
       maxRoundTimer: this.maxRoundTimer,
       currentRoundTimer: this.currentRoundTimer,
+    });
+  }
+
+  private alertCycleUpdated(isNowDayTime: boolean) {
+    this.onCycleUpdatedHandler.forEach((method) => {
+      method(isNowDayTime ? TimeOfDay.Day : TimeOfDay.Night, this.roundPast, this.nightPast);
+    });
+  }
+
+  private alertRoundTimerUpdated() {
+    this.onRoundTimerUpdatedHandler.forEach((method) => {
+      method(this.currentRoundTimer);
     });
   }
 }

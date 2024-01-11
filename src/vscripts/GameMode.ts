@@ -1,7 +1,7 @@
 import { reloadable } from "./lib/tstl-utils";
 import { modifier_panic } from "./modifiers/modifier_panic";
 import { modifier_neutral_ai } from "./modifiers/modifier_neutral_ai";
-import { RoundTimer } from "./RoundTimer";
+import { RoundTimer, TimeOfDay } from "./RoundTimer";
 import { ChestItemDropHandler } from "./ChestItemDropHandler";
 import { modifier_no_health_regen } from "./modifiers/modifier_no_health_regen";
 
@@ -26,6 +26,11 @@ declare global {
 @reloadable
 export class GameMode {
   wasRespawned: boolean;
+  gateEntities: CDOTA_BaseNPC[] = [];
+  gatePositions: Vector[] = [];
+  gateZombieSpawners: CBaseEntity[] = [];
+  gateKilled: number = 0;
+  goalItemAdded: number = 0;
 
   public static Precache(this: void, context: CScriptPrecacheContext) {
     PrecacheResource(
@@ -156,11 +161,6 @@ export class GameMode {
         myArrayOfNumbers: [1.414, 2.718, 3.142],
       });
 
-      // const gateEntities = Entities.FindAllByName("gate") as CDOTA_BaseNPC[];
-      // gateEntities.forEach((gate) => {
-      //   gate.RemoveModifierByName("modifier_invulnerable");
-      // });
-
       // Also apply the panic modifier to the sending player's hero
       // const hero = player.GetAssignedHero();
       // hero.AddNewModifier(hero, undefined, modifier_panic.name, {
@@ -203,6 +203,11 @@ export class GameMode {
       ) {
         if (itemEntIndex && itemEntIndex.GetName() === "item_gem") {
           print(`ItemEntIndex: ${itemEntIndex.GetName()}`);
+          this.goalItemAdded++;
+          print(`Goal added: ${this.goalItemAdded}`);
+          if (this.goalItemAdded >= 4) {
+            GameRules.SetGameWinner(DotaTeam.GOODGUYS);
+          }
           return true;
         }
         return false;
@@ -210,6 +215,30 @@ export class GameMode {
 
       return true;
     }, this);
+
+    // gameModeEntity.SetHUDVisible(HudVisibility.VISIBILITY_TOP_TIMEOFDAY, false);
+    gameModeEntity.SetHUDVisible(
+      HudVisibility.VISIBILITY_INVENTORY_QUICKBUY,
+      false
+    );
+    gameModeEntity.SetHUDVisible(
+      HudVisibility.VISIBILITY_INVENTORY_COURIER,
+      false
+    );
+    gameModeEntity.SetHUDVisible(
+      HudVisibility.VISIBILITY_INVENTORY_GOLD,
+      false
+    );
+    gameModeEntity.SetHUDVisible(
+      HudVisibility.VISIBILITY_INVENTORY_SHOP,
+      false
+    );
+    gameModeEntity.SetHUDVisible(HudVisibility.VISIBILITY_KILLCAM, false);
+    gameModeEntity.SetHUDVisible(HudVisibility.VISIBILITY_TOP_BAR_SCORE, false);
+    gameModeEntity.SetHUDVisible(
+      HudVisibility.VISIBILITY_AGHANIMS_STATUS,
+      false
+    );
     new ChestItemDropHandler();
   }
 
@@ -297,69 +326,124 @@ export class GameMode {
         const target = patrolTargets[index];
         let patrolPosition = target.GetAbsOrigin();
 
-        const newZombie = CreateUnitByName(
+        CreateUnitByNameAsync(
           "npc_dota_creature_zombie",
           spawnPosition,
           true,
           undefined,
           undefined,
-          DotaTeam.CUSTOM_1
-        );
-        const modelRadius = newZombie.GetModelRadius();
-        const pathEffectIndicator = ParticleManager.CreateParticle(
-          path,
-          ParticleAttachment.WORLDORIGIN,
-          undefined
-        );
-        ParticleManager.SetParticleControl(
-          pathEffectIndicator,
-          0,
-          spawnPosition
-        );
-        ParticleManager.SetParticleControl(
-          pathEffectIndicator,
-          1,
-          patrolPosition
-        );
-        ParticleManager.SetParticleControl(
-          pathEffectIndicator,
-          15,
-          Vector(255, 0, 0)
-        );
+          DotaTeam.CUSTOM_1,
+          (unit) => {
+            const modelRadius = unit.GetModelRadius();
+            const pathEffectIndicator = ParticleManager.CreateParticle(
+              path,
+              ParticleAttachment.WORLDORIGIN,
+              undefined
+            );
+            ParticleManager.SetParticleControl(
+              pathEffectIndicator,
+              0,
+              spawnPosition
+            );
+            ParticleManager.SetParticleControl(
+              pathEffectIndicator,
+              1,
+              patrolPosition
+            );
+            ParticleManager.SetParticleControl(
+              pathEffectIndicator,
+              15,
+              Vector(255, 0, 0)
+            );
 
-        const effectIndicator = ParticleManager.CreateParticle(
-          viewRangeCast,
-          ParticleAttachment.WORLDORIGIN,
-          undefined
-        );
-        ParticleManager.SetParticleControl(effectIndicator, 2, spawnPosition);
-        ParticleManager.SetParticleControl(
-          effectIndicator,
-          3,
-          Vector(modelRadius, 0, 0)
-        );
+            const effectIndicator = ParticleManager.CreateParticle(
+              viewRangeCast,
+              ParticleAttachment.WORLDORIGIN,
+              undefined
+            );
+            ParticleManager.SetParticleControl(
+              effectIndicator,
+              2,
+              spawnPosition
+            );
+            ParticleManager.SetParticleControl(
+              effectIndicator,
+              3,
+              Vector(modelRadius, 0, 0)
+            );
 
-        newZombie.AddNewModifier(newZombie, undefined, "modifier_phased", {
-          duration: 0.03,
-        });
+            unit.AddNewModifier(unit, undefined, "modifier_phased", {
+              duration: FrameTime(),
+            });
 
-        const aiLogic = newZombie.AddNewModifier(
-          newZombie,
-          undefined,
-          modifier_neutral_ai.name,
-          {
-            aggroRange: newZombie.GetAcquisitionRange(),
-            leashRange: newZombie.GetAcquisitionRange(),
+            const aiLogic = unit.AddNewModifier(
+              unit,
+              undefined,
+              modifier_neutral_ai.name,
+              {
+                aggroRange: unit.GetAcquisitionRange(),
+                leashRange: unit.GetAcquisitionRange(),
+              }
+            ) as modifier_neutral_ai;
+            aiLogic.secondPatrol = patrolPosition;
+            aiLogic.targetPatrol = patrolPosition;
+            spawnedZombies[index] = unit;
           }
-        ) as modifier_neutral_ai;
-        aiLogic.secondPatrol = patrolPosition;
-        aiLogic.targetPatrol = patrolPosition;
-        spawnedZombies[index] = newZombie;
+        );
       });
       return 10.0;
     });
 
-    new RoundTimer(10);
+    this.gateEntities = Entities.FindAllByName("gate") as CDOTA_BaseNPC[];
+    this.gateEntities.forEach((gate) => {
+      this.gatePositions.push(gate!.GetAbsOrigin());
+    });
+    this.gateZombieSpawners = Entities.FindAllByName("gate_zombie_spawner");
+
+    const roundTimer = new RoundTimer(30);
+    roundTimer.addOnCycleUpdatedHandler((timeOfDay, roundPast, nightPast) => {
+      if (timeOfDay === TimeOfDay.Day) return;
+      if (this.gateEntities.length === 0) return;
+
+      const randomGateIndex = [
+        RandomInt(0, this.gateEntities.length - 1),
+        RandomInt(0, this.gateEntities.length - 1),
+      ];
+      const zombieToSpawn = Math.floor(nightPast / 3);
+      randomGateIndex.forEach((gateIndex) => {
+        const indexCopy = gateIndex;
+        const gate = this.gateEntities[indexCopy];
+        const spawner = this.gateZombieSpawners[indexCopy];
+        const isGateActive = !gate.IsNull() && gate.IsAlive();
+        if (isGateActive) gate.MakeVisibleToTeam(DotaTeam.CUSTOM_1, 5);
+        print(
+          `Round past: ${roundPast}, night past: ${nightPast}, zombie to spawn: ${zombieToSpawn}`
+        );
+        for (let zomIndex = 0; zomIndex < zombieToSpawn; zomIndex++) {
+          CreateUnitByNameAsync(
+            "npc_dota_creature_zombie_night",
+            spawner.GetAbsOrigin(),
+            true,
+            undefined,
+            undefined,
+            DotaTeam.CUSTOM_1,
+            (zombie) => {
+              zombie.AddNewModifier(zombie, undefined, "modifier_phased", {
+                duration: FrameTime(),
+              });
+              Timers.CreateTimer(FrameTime(), () => {
+                if (!isGateActive) {
+                  zombie.MoveToPosition(this.gatePositions[indexCopy]);
+                  return;
+                }
+
+                zombie.MoveToTargetToAttack(gate);
+              });
+            }
+          );
+        }
+      });
+    });
   }
 
   // Called on script_reload
@@ -370,10 +454,11 @@ export class GameMode {
   }
 
   private OnEntityKilled(event: EntityKilledEvent) {
-    const zombieKilled = EntIndexToHScript(
+    const entityKilled = EntIndexToHScript(
       event.entindex_killed
     ) as CDOTA_BaseNPC;
-    if (zombieKilled.GetUnitLabel() === "zombie") {
+    const unitLabel = entityKilled.GetUnitLabel();
+    if (unitLabel === "zombie") {
       const spawnerKeys = Object.keys(spawnedZombies);
       spawnerKeys.map((key) => {
         const keyAsInt = parseInt(key);
@@ -401,6 +486,16 @@ export class GameMode {
           viewRangeParticles.indexOf(particle),
           1
         );
+      }
+    } else if (unitLabel === "gate") {
+      this.gateKilled++;
+      const gateIndex = this.gateEntities.findIndex(
+        (gate) => gate.entindex() === event.entindex_killed
+      );
+      this.gateEntities.splice(gateIndex, 1);
+      this.gateZombieSpawners.splice(gateIndex, 1);
+      if (this.gateKilled === this.gatePositions.length) {
+        GameRules.MakeTeamLose(DotaTeam.GOODGUYS);
       }
     }
   }

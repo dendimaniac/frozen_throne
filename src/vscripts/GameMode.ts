@@ -17,6 +17,10 @@ type ViewRangeParticles = {
   particleId: ParticleID;
 };
 
+interface HeroList {
+  [key: string]: number;
+}
+
 declare global {
   interface CDOTAGameRules {
     Addon: GameMode;
@@ -31,6 +35,7 @@ export class GameMode {
   gateZombieSpawners: CBaseEntity[] = [];
   gateKilled: number = 0;
   goalItemAdded: number = 0;
+  heroList: string[] = [];
 
   public static Precache(this: void, context: CScriptPrecacheContext) {
     PrecacheResource(
@@ -172,12 +177,13 @@ export class GameMode {
   private configure(): void {
     GameRules.EnableCustomGameSetupAutoLaunch(true);
     GameRules.SetCustomGameSetupAutoLaunchDelay(0);
-    GameRules.SetHeroSelectionTime(10);
+    GameRules.SetHeroSelectionTime(heroSelectionTime);
+    GameRules.SetHeroSelectPenaltyTime(0);
     GameRules.SetStrategyTime(0);
     GameRules.SetPreGameTime(0);
     GameRules.SetShowcaseTime(0);
     GameRules.SetPostGameTime(5);
-    GameRules.SetHeroSelectionTime(heroSelectionTime);
+    // GameRules.SetSameHeroSelectionEnabled(true);
     const gameModeEntity = GameRules.GetGameModeEntity();
     gameModeEntity.SetFogOfWarDisabled(false);
     gameModeEntity.SetDaynightCycleDisabled(true);
@@ -185,6 +191,7 @@ export class GameMode {
       AttributeDerivedStats.STRENGTH_HP_REGEN,
       0
     );
+    gameModeEntity.SetBuybackEnabled(false);
 
     if (forceHero !== null) {
       gameModeEntity.SetCustomGameForceHero(forceHero);
@@ -216,7 +223,7 @@ export class GameMode {
       return true;
     }, this);
 
-    // gameModeEntity.SetHUDVisible(HudVisibility.VISIBILITY_TOP_TIMEOFDAY, false);
+    gameModeEntity.SetHUDVisible(HudVisibility.VISIBILITY_TOP_TIMEOFDAY, false);
     gameModeEntity.SetHUDVisible(
       HudVisibility.VISIBILITY_INVENTORY_QUICKBUY,
       false
@@ -259,28 +266,27 @@ export class GameMode {
       Timers.CreateTimer(0.2, () => this.StartGame());
     }
 
-    if (state === GameState.GAME_IN_PROGRESS) {
-      print(`${Entities.GetLocalPlayer()}`);
-      // print(`${Entities.GetLocalPlayer().GetPlayerID()}`);
-      const localPlayerId = 0;
-      const objectStashPoint = Entities.FindByName(
-        undefined,
-        "objective_stash_location"
-      )!;
-      const stashEntity = CreateUnitByName(
-        `objective_stash`,
-        objectStashPoint.GetAbsOrigin(),
-        true,
-        undefined,
-        undefined,
-        DotaTeam.GOODGUYS
-      );
-      // stashEntity.SetControllableByPlayer(localPlayerId, true);
+    if (state === GameState.STRATEGY_TIME) {
+      for (
+        let playerIndex: PlayerID = 0;
+        playerIndex < DOTA_MAX_TEAM_PLAYERS;
+        playerIndex++
+      ) {
+        const playerId = playerIndex as PlayerID;
+        const player = PlayerResource.GetPlayer(playerId);
+        if (player !== undefined && !PlayerResource.HasSelectedHero(playerId)) {
+          player.MakeRandomHeroSelection();
+        }
+      }
     }
   }
 
   private StartGame(): void {
     print("Game starting!");
+
+    const heroList = LoadKeyValues("scripts/npc/herolist.txt") as HeroList;
+    this.heroList = Object.keys(heroList);
+    DeepPrintTable(this.heroList);
 
     // Do some stuff here
     const availableLocations = [
@@ -322,9 +328,9 @@ export class GameMode {
         const specificSpawnerZombies = spawnedZombies[index];
         if (specificSpawnerZombies !== undefined) return;
 
-        let spawnPosition = sp.GetAbsOrigin();
+        const spawnPosition = sp.GetAbsOrigin();
         const target = patrolTargets[index];
-        let patrolPosition = target.GetAbsOrigin();
+        const patrolPosition = target.GetAbsOrigin();
 
         CreateUnitByNameAsync(
           "npc_dota_creature_zombie",
@@ -504,7 +510,33 @@ export class GameMode {
     const player = PlayerResource.GetPlayer(event.PlayerID);
     if (player) {
       const hero = player.GetAssignedHero();
-      hero.SetTimeUntilRespawn(3);
+      const canRespawn = this.heroList.length > 0;
+      if (canRespawn) hero.SetTimeUntilRespawn(3);
+      else {
+        hero.SetRespawnsDisabled(!canRespawn);
+        let disabledCount = 0;
+        for (
+          let playerIndex: PlayerID = 0;
+          playerIndex < DOTA_MAX_TEAM_PLAYERS;
+          playerIndex++
+        ) {
+          const playerId = playerIndex as PlayerID;
+          const player = PlayerResource.GetPlayer(playerId);
+          if (
+            player !== undefined &&
+            player.GetAssignedHero().GetRespawnsDisabled()
+          ) {
+            disabledCount++;
+          }
+        }
+        if (
+          disabledCount ===
+          PlayerResource.GetPlayerCountForTeam(DotaTeam.GOODGUYS)
+        ) {
+          GameRules.MakeTeamLose(DotaTeam.GOODGUYS);
+          return;
+        }
+      }
       for (let i = 0; i < 9; i++) {
         const item = hero.GetItemInSlot(i);
         if (item) {
@@ -523,19 +555,24 @@ export class GameMode {
   private OnNpcSpawned(event: NpcSpawnedEvent) {
     const oldHero = EntIndexToHScript(event.entindex) as CDOTA_BaseNPC_Hero;
     if (oldHero && oldHero.IsRealHero()) {
-      print(`${event.is_respawn}`);
       oldHero.AddNewModifier(
         oldHero,
         undefined,
         modifier_no_health_regen.name,
         undefined
       );
+      const oldHeroName = oldHero.GetName();
       if (event.is_respawn > 0) {
         this.wasRespawned = true;
         const playerId = oldHero.GetPlayerOwnerID();
+        const heroNameIndex = RandomInt(0, this.heroList.length - 1);
+        const heroName =
+          this.heroList.length === 0
+            ? oldHeroName
+            : this.heroList[heroNameIndex];
         PlayerResource.ReplaceHeroWith(
           playerId,
-          "npc_dota_hero_meepo",
+          heroName,
           oldHero.GetGold(),
           oldHero.GetCurrentXP()
         );
@@ -543,6 +580,9 @@ export class GameMode {
         if (!this.wasRespawned) {
           oldHero.AddItemByName("item_blink");
         }
+        print(oldHeroName);
+        this.heroList = this.heroList.filter((name) => name !== oldHeroName);
+        DeepPrintTable(this.heroList);
         this.wasRespawned = false;
       }
     }

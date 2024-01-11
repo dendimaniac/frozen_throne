@@ -20,11 +20,12 @@
       <Panel class="Objective">
         <Image class="BannerImage" src="file://{resources}/images/custom_game/tstl.png" />
         <Panel class="DescriptionContainer">
-          <Label class="DescriptionTitle" text="Main" />
-          <Label class="Description" text="Pick up all required items" />
+          <!-- <Label class="DescriptionTitle" text="Main" /> -->
+          <Label class="Description" text="Victory: 4 gems in the Objective Stash" />
+          <Label class="Description" text="Lose: 4 gates broken" />
         </Panel>
         <Button id="CloseButton" onactivate="OnChangeTeamButtonClicked()">
-          <Label text="Close" />
+          <!-- <Label text="Close" /> -->
         </Button>
       </Panel>
     </Panel>

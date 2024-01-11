@@ -4,16 +4,112 @@
 "DOTAHeroes"
 {
 	//=================================================================================================================
-	// HERO: Weaver
+	// HERO: Juggernaut
 	//=================================================================================================================
-	"npc_dota_hero_weaver"
+	"npc_dota_hero_juggernaut"
 	{
-		"override_hero"				"npc_dota_hero_weaver"
+		"override_hero"				"npc_dota_hero_juggernaut"
 		"Ability1"						""
 		"Ability2"						""
 		"Ability3"						""
 		"Ability4"						""
+		"Ability5"						""
 		"Ability6"						""
+		"Ability7"						""
+		"Ability8"						""
+		"Ability9"						""
+
+		"Ability10"						""
+		"Ability11"						""
+		"Ability12"						""
+		"Ability13"						""
+		"Ability14"						""
+		"Ability15"						""
+		"Ability16"						""
+		"Ability17"						""
+	}
+
+  "npc_dota_hero_doom_bringer"
+	{
+		"override_hero"				"npc_dota_hero_doom_bringer"
+		"Ability1"						""
+		"Ability2"						""
+		"Ability3"						""
+		"Ability4"						""
+		"Ability5"						""
+		"Ability6"						""
+		"Ability7"						""
+		"Ability8"						""
+		"Ability9"						""
+
+		"Ability10"						""
+		"Ability11"						""
+		"Ability12"						""
+		"Ability13"						""
+		"Ability14"						""
+		"Ability15"						""
+		"Ability16"						""
+		"Ability17"						""
+	}
+
+  "npc_dota_hero_dragon_knight"
+	{
+		"override_hero"				"npc_dota_hero_dragon_knight"
+		"Ability1"						""
+		"Ability2"						""
+		"Ability3"						""
+		"Ability4"						""
+		"Ability5"						""
+		"Ability6"						""
+		"Ability7"						""
+		"Ability8"						""
+		"Ability9"						""
+
+		"Ability10"						""
+		"Ability11"						""
+		"Ability12"						""
+		"Ability13"						""
+		"Ability14"						""
+		"Ability15"						""
+		"Ability16"						""
+		"Ability17"						""
+	}
+
+  "npc_dota_hero_faceless_void"
+	{
+		"override_hero"				"npc_dota_hero_faceless_void"
+		"Ability1"						""
+		"Ability2"						""
+		"Ability3"						""
+		"Ability4"						""
+		"Ability5"						""
+		"Ability6"						""
+		"Ability7"						""
+		"Ability8"						""
+		"Ability9"						""
+
+		"Ability10"						""
+		"Ability11"						""
+		"Ability12"						""
+		"Ability13"						""
+		"Ability14"						""
+		"Ability15"						""
+		"Ability16"						""
+		"Ability17"						""
+	}
+
+  "npc_dota_hero_kunkka"
+	{
+		"override_hero"				"npc_dota_hero_kunkka"
+		"Ability1"						""
+		"Ability2"						""
+		"Ability3"						""
+		"Ability4"						""
+		"Ability5"						""
+		"Ability6"						""
+		"Ability7"						""
+		"Ability8"						""
+		"Ability9"						""
 
 		"Ability10"						""
 		"Ability11"						""

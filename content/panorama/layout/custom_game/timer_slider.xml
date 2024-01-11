@@ -15,9 +15,9 @@
   </snippets>
 
   <Panel hittest="false" class="MainHud">
-    <Panel hittest="false" id="container" class="Container">
-      <Panel id="slider" class="Slider" />
-      <Label id="round-timer-text" class="RoundTimerText" />
-    </Panel>
+    <Label id="round-timer-text" class="RoundTimerText" />
+    <!-- <Panel hittest="false" id="container" class="Container"> -->
+      <!-- <Panel id="slider" class="Slider" /> -->
+    <!-- </Panel> -->
   </Panel>
 </root>

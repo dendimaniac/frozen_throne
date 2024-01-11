@@ -59,7 +59,7 @@ export class RoundTimer {
         if (this.currentRoundTimer === 0) {
           if (newMaxRoundTimer > 0) this.maxRoundTimer = newMaxRoundTimer;
           this.clearRoundTimer();
-          this.startNewRound(true, 0, 1);
+          this.startNewRound(newMaxRoundTimer === 0, 0, 1);
           return;
         }
         return 1;

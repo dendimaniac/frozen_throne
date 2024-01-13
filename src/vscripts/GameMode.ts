@@ -4,6 +4,8 @@ import { modifier_neutral_ai } from "./modifiers/modifier_neutral_ai";
 import { RoundTimer, TimeOfDay } from "./RoundTimer";
 import { ChestItemDropHandler } from "./ChestItemDropHandler";
 import { modifier_no_health_regen } from "./modifiers/modifier_no_health_regen";
+import { modifier_enemy_range_view } from "./modifiers/modifier_enemy_range_view";
+import { modifier_gate_under_attack } from "./modifiers/modifier_gate_under_attack";
 
 const heroSelectionTime = 20;
 // null will not force a hero selection
@@ -103,51 +105,6 @@ export class GameMode {
       undefined
     );
 
-    CustomGameEventManager.RegisterListener("alt_active", (_, data) => {
-      const viewRangeCast = "particles/range_finder_aoe.vpcf";
-      const zombies = Object.values(spawnedZombies).flat();
-      zombies.map((entity) => {
-        if (!entity) return;
-
-        const radius = entity.GetCurrentVisionRange();
-        let particle = viewRangeParticles.find(
-          (item) => item?.entityId === entity.entindex()
-        );
-        if (particle === undefined) {
-          const effectIndicator = ParticleManager.CreateParticle(
-            viewRangeCast,
-            ParticleAttachment.ABSORIGIN_FOLLOW,
-            entity
-          );
-          particle = {
-            entityId: entity.entindex(),
-            particleId: effectIndicator,
-          };
-          viewRangeParticles.push(particle);
-        }
-        ParticleManager.SetParticleControl(
-          particle.particleId,
-          2,
-          entity.GetAbsOrigin()
-        );
-        ParticleManager.SetParticleControl(
-          particle.particleId,
-          3,
-          Vector(radius, 0, 0)
-        );
-      });
-    });
-
-    CustomGameEventManager.RegisterListener("alt_inactive", (_, data) => {
-      viewRangeParticles.map((particle) => {
-        if (particle === undefined) return;
-
-        ParticleManager.DestroyParticle(particle.particleId, true);
-        ParticleManager.ReleaseParticleIndex(particle.particleId);
-      });
-      viewRangeParticles = [];
-    });
-
     // Register event listeners for events from the UI
     CustomGameEventManager.RegisterListener("ui_panel_closed", (_, data) => {
       print(`Player ${data.PlayerID} has closed their UI panel.`);
@@ -165,12 +122,6 @@ export class GameMode {
         myString: "Hello!",
         myArrayOfNumbers: [1.414, 2.718, 3.142],
       });
-
-      // Also apply the panic modifier to the sending player's hero
-      // const hero = player.GetAssignedHero();
-      // hero.AddNewModifier(hero, undefined, modifier_panic.name, {
-      //   duration: 1,
-      // });
     });
   }
 
@@ -320,9 +271,10 @@ export class GameMode {
       );
       availableLocations.splice(randomLocationIndex, 1);
     });
+
     Timers.CreateTimer(() => {
       spawner.map((sp, index) => {
-        // if (Object.keys(spawnedZombies).length == 50) return;
+        // if (index > 10) return;
         // print(`TEST: Spawned count: ${Object.keys(spawnedZombies).length}`);
 
         const specificSpawnerZombies = spawnedZombies[index];
@@ -381,6 +333,12 @@ export class GameMode {
             unit.AddNewModifier(unit, undefined, "modifier_phased", {
               duration: FrameTime(),
             });
+            unit.AddNewModifier(
+              unit,
+              undefined,
+              modifier_enemy_range_view.name,
+              undefined
+            );
 
             const aiLogic = unit.AddNewModifier(
               unit,
@@ -400,13 +358,32 @@ export class GameMode {
       return 10.0;
     });
 
+    const objectStashPoint = Entities.FindByName(
+      undefined,
+      "objective_stash_location"
+    )!;
+    CreateUnitByName(
+      `objective_stash`,
+      objectStashPoint.GetAbsOrigin(),
+      true,
+      undefined,
+      undefined,
+      DotaTeam.GOODGUYS
+    );
+
     this.gateEntities = Entities.FindAllByName("gate") as CDOTA_BaseNPC[];
     this.gateEntities.forEach((gate) => {
       this.gatePositions.push(gate!.GetAbsOrigin());
+      gate.AddNewModifier(
+        undefined,
+        undefined,
+        modifier_gate_under_attack.name,
+        undefined
+      );
     });
     this.gateZombieSpawners = Entities.FindAllByName("gate_zombie_spawner");
 
-    const roundTimer = new RoundTimer(30);
+    const roundTimer = new RoundTimer(5, 30);
     roundTimer.addOnCycleUpdatedHandler((timeOfDay, roundPast, nightPast) => {
       if (timeOfDay === TimeOfDay.Day) return;
       if (this.gateEntities.length === 0) return;
@@ -570,12 +547,17 @@ export class GameMode {
           this.heroList.length === 0
             ? oldHeroName
             : this.heroList[heroNameIndex];
+        const oldHeroXP = oldHero.GetCurrentXP();
         PlayerResource.ReplaceHeroWith(
           playerId,
           heroName,
           oldHero.GetGold(),
-          oldHero.GetCurrentXP()
+          oldHeroXP
         );
+        const player = PlayerResource.GetPlayer(playerId)!;
+        player
+          .GetAssignedHero()
+          .AddExperience(oldHeroXP, ModifyXpReason.UNSPECIFIED, false, true);
       } else {
         if (!this.wasRespawned) {
           oldHero.AddItemByName("item_blink");

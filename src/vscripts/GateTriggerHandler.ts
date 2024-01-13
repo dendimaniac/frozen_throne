@@ -11,21 +11,21 @@ export interface TriggerEvent {
 registerEntityFunction("OnStartTouch", (trigger: TriggerEvent) => {
   const triggerName = trigger.caller.GetName();
   const gateNum = parseInt(triggerName.split("_").pop()!);
-  const gateBlockEntity: CDotaTutorialNPCBlocker = Entities.FindByName(
+  const gateBlockEntity = Entities.FindByName(
     undefined,
-    `block_start_gate_${gateNum}`
-  )! as CDotaTutorialNPCBlocker;
-  gateBlockEntity.SetEnabled(false);
+    `gate_obstruction_${gateNum}`
+  )! as CDOTA_SimpleObstruction;
+  gateBlockEntity.SetEnabled(false, false);
   print(`TEST: Gate disabled!`);
 });
 
 registerEntityFunction("OnEndTouchAll", (trigger: TriggerEvent) => {
   const triggerName = trigger.caller.GetName();
   const gateNum = parseInt(triggerName.split("_").pop()!);
-  const gateBlockEntity: CDotaTutorialNPCBlocker = Entities.FindByName(
+  const gateBlockEntity = Entities.FindByName(
     undefined,
-    `block_start_gate_${gateNum}`
-  )! as CDotaTutorialNPCBlocker;
-  gateBlockEntity.SetEnabled(true);
+    `gate_obstruction_${gateNum}`
+  )! as CDOTA_SimpleObstruction;
+  gateBlockEntity.SetEnabled(true, false);
   print(`TEST: Gate enabled!`);
 });

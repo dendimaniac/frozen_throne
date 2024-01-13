@@ -2,7 +2,6 @@ import { reloadable } from "./lib/tstl-utils";
 
 const dayTime = 0.3;
 const nightTime = 0.8;
-const startDelay = 5;
 
 export enum TimeOfDay {
   Day,
@@ -22,10 +21,10 @@ export class RoundTimer {
   > = [];
   onRoundTimerUpdatedHandler: Array<(roundTimer: number) => void> = [];
 
-  constructor(maxRoundTimer: number) {
+  constructor(startDelay: number, maxRoundTimer: number) {
     this.maxRoundTimer = startDelay;
     this.updateRoundTimer(startDelay);
-    this.startNewRound(false, maxRoundTimer);
+    this.startNewRound(false, maxRoundTimer, startDelay);
     this.gameMode = GameRules.GetGameModeEntity();
     GameRules.SetTimeOfDay(dayTime);
   }
@@ -90,7 +89,11 @@ export class RoundTimer {
 
   private alertCycleUpdated(isNowDayTime: boolean) {
     this.onCycleUpdatedHandler.forEach((method) => {
-      method(isNowDayTime ? TimeOfDay.Day : TimeOfDay.Night, this.roundPast, this.nightPast);
+      method(
+        isNowDayTime ? TimeOfDay.Day : TimeOfDay.Night,
+        this.roundPast,
+        this.nightPast
+      );
     });
   }
 

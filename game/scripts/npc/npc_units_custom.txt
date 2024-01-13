@@ -261,11 +261,9 @@
 		"Model"							"models/gate.vmdl"
 		"BaseClass"					"npc_dota_creature"
 		"SoundSet"					"n_creep_Ranged"
-		"GameSoundsFile"			"soundevents/game_sounds_creeps.vsndevts"
 		"Level"						  "1"
 		"ModelScale" 				"0.45"
     "UseNeutralCreepBehavior"         "0"
-    "ConsideredHero"			"1"
 
 		// Abilities
 		//----------------------------------------------------------------
@@ -281,6 +279,7 @@
 		// Attack
 		//----------------------------------------------------------------
 		"AttackCapabilities"		"DOTA_UNIT_CAP_NO_ATTACK"
+    "AttackRange"				"0"
 
 		// Bounds
 		//----------------------------------------------------------------

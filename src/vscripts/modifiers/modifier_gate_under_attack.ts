@@ -28,8 +28,10 @@ export class modifier_gate_under_attack extends BaseModifier {
     };
   }
 
-  OnAttacked(_: ModifierAttackEvent): void {
+  OnAttacked(event: ModifierAttackEvent): void {
     if (IsServer()) {
+      if (event.target.GetName() !== "gate") return;
+
       if (this.soundPlayingTimer === undefined) {
         EmitAnnouncerSoundForTeam(this.underAttackSound, DotaTeam.GOODGUYS);
         this.soundPlayingTimer = Timers.CreateTimer(this.soundDuration, () => {

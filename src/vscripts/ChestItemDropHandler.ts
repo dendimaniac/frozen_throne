@@ -11,8 +11,8 @@ export class ChestItemDropHandler {
   constructor() {
     this.itemDropsRate = LoadKeyValues("scripts/kv/item_drops.kv") as ItemsDrop;
     ListenToGameEvent(
-      "entity_killed",
-      (event) => this.OnEntityKilled(event),
+      "entity_hurt",
+      (event) => this.OnEntityHurt(event),
       undefined
     );
     ListenToGameEvent(
@@ -22,7 +22,7 @@ export class ChestItemDropHandler {
     );
   }
 
-  private OnEntityKilled(event: EntityKilledEvent) {
+  private OnEntityHurt(event: EntityHurtEvent) {
     const entityKilled = EntIndexToHScript(
       event.entindex_killed
     ) as CDOTA_BaseNPC;
@@ -40,13 +40,13 @@ export class ChestItemDropHandler {
         },
         []
       );
-      DeepPrintTable(mappedItemKeys);
+      // DeepPrintTable(mappedItemKeys);
       const itemName = mappedItemKeys[RandomInt(0, mappedItemKeys.length - 1)];
       itemSets[itemName]--;
-      print(`TEST: Name: ${itemName}, value: ${itemSets[itemName]}`);
+      // print(`TEST: Name: ${itemName}, value: ${itemSets[itemName]}`);
       if (itemSets[itemName] === 0) {
         delete itemSets[itemName];
-        DeepPrintTable(this.itemDropsRate);
+        // DeepPrintTable(this.itemDropsRate);
       }
 
       const item = CreateItem(itemName, undefined, undefined);
@@ -54,17 +54,6 @@ export class ChestItemDropHandler {
       CreateItemOnPositionSync(pos, item);
       const pos_launch = (pos + RandomVector(RandomFloat(150, 200))) as Vector;
       item!.LaunchLoot(false, 200, 0.75, pos_launch, undefined);
-
-      if (Object.entries(itemSets).length > 0) {
-        CreateUnitByName(
-          unitName,
-          entityKilled.GetAbsOrigin(),
-          true,
-          undefined,
-          undefined,
-          entityKilled.GetTeam()
-        );
-      }
     }
   }
 
@@ -75,6 +64,7 @@ export class ChestItemDropHandler {
       const itemSets =
         this.itemDropsRate[entitySpawned.GetUnitLabel()].ItemSets;
       const possibleItemNames = Object.keys(itemSets);
+      let maxItemCount = 0;
       possibleItemNames
         .sort((a, b) => {
           if (itemSets[a] > itemSets[b]) return -1;
@@ -82,8 +72,11 @@ export class ChestItemDropHandler {
           return 0;
         })
         .map((itemName) => {
+          maxItemCount += itemSets[itemName];
           entitySpawned.AddItemByName(itemName);
         });
+      entitySpawned.SetBaseMaxHealth(maxItemCount);
+      entitySpawned.ModifyHealth(maxItemCount, undefined, false, 0);
     }
   }
 }

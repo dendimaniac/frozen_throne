@@ -6,6 +6,7 @@ import { ChestItemDropHandler } from "./ChestItemDropHandler";
 import { modifier_no_health_regen } from "./modifiers/modifier_no_health_regen";
 import { modifier_enemy_range_view } from "./modifiers/modifier_enemy_range_view";
 import { modifier_gate_under_attack } from "./modifiers/modifier_gate_under_attack";
+import { modifier_chest_noise } from "./modifiers/modifier_chest_noise";
 
 const heroSelectionTime = 20;
 // null will not force a hero selection
@@ -136,7 +137,7 @@ export class GameMode {
     GameRules.SetPostGameTime(5);
     // GameRules.SetSameHeroSelectionEnabled(true);
     const gameModeEntity = GameRules.GetGameModeEntity();
-    gameModeEntity.SetFogOfWarDisabled(false);
+    gameModeEntity.SetFogOfWarDisabled(true);
     gameModeEntity.SetDaynightCycleDisabled(true);
     gameModeEntity.SetCustomAttributeDerivedStatValue(
       AttributeDerivedStats.STRENGTH_HP_REGEN,
@@ -148,29 +149,42 @@ export class GameMode {
       gameModeEntity.SetCustomGameForceHero(forceHero);
     }
 
-    gameModeEntity.SetItemAddedToInventoryFilter((event) => {
-      const inventoryParent = EntIndexToHScript(
-        event.inventory_parent_entindex_const
-      ) as CDOTA_BaseNPC | undefined;
-      const itemEntIndex = EntIndexToHScript(event.item_entindex_const) as
-        | CDOTA_BaseNPC
-        | undefined;
-      if (
-        inventoryParent &&
-        inventoryParent.GetUnitName() === "objective_stash"
-      ) {
-        if (itemEntIndex && itemEntIndex.GetName() === "item_gem") {
-          print(`ItemEntIndex: ${itemEntIndex.GetName()}`);
-          this.goalItemAdded++;
-          print(`Goal added: ${this.goalItemAdded}`);
-          if (this.goalItemAdded >= 4) {
-            GameRules.SetGameWinner(DotaTeam.GOODGUYS);
+    gameModeEntity.SetItemAddedToInventoryFilter(
+      (event: ItemAddedToInventoryFilterEvent) => {
+        const inventoryParent = EntIndexToHScript(
+          event.inventory_parent_entindex_const
+        ) as CDOTA_BaseNPC | undefined;
+        const itemEntIndex = EntIndexToHScript(event.item_entindex_const) as
+          | CDOTA_BaseNPC
+          | undefined;
+        if (
+          inventoryParent &&
+          inventoryParent.GetUnitName() === "objective_stash"
+        ) {
+          if (itemEntIndex && itemEntIndex.GetName() === "item_gem") {
+            print(`ItemEntIndex: ${itemEntIndex.GetName()}`);
+            this.goalItemAdded++;
+            print(`Goal added: ${this.goalItemAdded}`);
+            if (this.goalItemAdded >= 4) {
+              GameRules.SetGameWinner(DotaTeam.GOODGUYS);
+            }
+            return true;
           }
-          return true;
+          return false;
         }
-        return false;
-      }
 
+        return true;
+      },
+      this
+    );
+
+    gameModeEntity.SetDamageFilter((event: DamageFilterEvent) => {
+      const victim = EntIndexToHScript(
+        event.entindex_victim_const
+      ) as CDOTA_BaseNPC;
+      if (victim.GetUnitName().includes("chest")) {
+        event.damage = 1;
+      }
       return true;
     }, this);
 
@@ -258,16 +272,26 @@ export class GameMode {
       const isSpawnerEnabled = sp.Attribute_GetIntValue("isEnabled", 0) > 0;
       if (!isSpawnerEnabled) return;
 
-      const spawnPosition = (sp.GetAbsOrigin() + RandomVector(100)) as Vector;
       const randomLocationIndex = RandomInt(0, availableLocations.length - 1);
-      const location = availableLocations[randomLocationIndex];
-      CreateUnitByName(
-        `chest_${location}`,
-        spawnPosition,
+      const locationName = availableLocations[randomLocationIndex];
+      const noiseLocationIndex = sp.Attribute_GetIntValue("location", 0);
+      CreateUnitByNameAsync(
+        `chest_${locationName}`,
+        sp.GetAbsOrigin(),
         true,
         undefined,
         undefined,
-        DotaTeam.CUSTOM_1
+        DotaTeam.CUSTOM_1,
+        (chest) => {
+          chest.AddNewModifier(
+            chest,
+            undefined,
+            modifier_chest_noise.name,
+            {
+              noiseLocationIndex: noiseLocationIndex,
+            }
+          );
+        }
       );
       availableLocations.splice(randomLocationIndex, 1);
     });
@@ -375,7 +399,7 @@ export class GameMode {
     this.gateEntities.forEach((gate) => {
       this.gatePositions.push(gate!.GetAbsOrigin());
       gate.AddNewModifier(
-        undefined,
+        gate,
         undefined,
         modifier_gate_under_attack.name,
         undefined
@@ -383,7 +407,7 @@ export class GameMode {
     });
     this.gateZombieSpawners = Entities.FindAllByName("gate_zombie_spawner");
 
-    const roundTimer = new RoundTimer(5, 30);
+    const roundTimer = new RoundTimer(3, 3);
     roundTimer.addOnCycleUpdatedHandler((timeOfDay, roundPast, nightPast) => {
       if (timeOfDay === TimeOfDay.Day) return;
       if (this.gateEntities.length === 0) return;
@@ -399,9 +423,6 @@ export class GameMode {
         const spawner = this.gateZombieSpawners[indexCopy];
         const isGateActive = !gate.IsNull() && gate.IsAlive();
         if (isGateActive) gate.MakeVisibleToTeam(DotaTeam.CUSTOM_1, 5);
-        print(
-          `Round past: ${roundPast}, night past: ${nightPast}, zombie to spawn: ${zombieToSpawn}`
-        );
         for (let zomIndex = 0; zomIndex < zombieToSpawn; zomIndex++) {
           CreateUnitByNameAsync(
             "npc_dota_creature_zombie_night",
@@ -478,7 +499,7 @@ export class GameMode {
       this.gateEntities.splice(gateIndex, 1);
       this.gateZombieSpawners.splice(gateIndex, 1);
       if (this.gateKilled === this.gatePositions.length) {
-        GameRules.MakeTeamLose(DotaTeam.GOODGUYS);
+        // GameRules.MakeTeamLose(DotaTeam.GOODGUYS);
       }
     }
   }
@@ -530,28 +551,30 @@ export class GameMode {
   }
 
   private OnNpcSpawned(event: NpcSpawnedEvent) {
-    const oldHero = EntIndexToHScript(event.entindex) as CDOTA_BaseNPC_Hero;
-    if (oldHero && oldHero.IsRealHero()) {
-      oldHero.AddNewModifier(
-        oldHero,
+    const spawnedUnit = EntIndexToHScript(event.entindex) as CDOTA_BaseNPC_Hero;
+    if (spawnedUnit !== undefined) {
+      if (!spawnedUnit.IsRealHero()) return;
+
+      spawnedUnit.AddNewModifier(
+        spawnedUnit,
         undefined,
         modifier_no_health_regen.name,
         undefined
       );
-      const oldHeroName = oldHero.GetName();
+      const oldHeroName = spawnedUnit.GetName();
       if (event.is_respawn > 0) {
         this.wasRespawned = true;
-        const playerId = oldHero.GetPlayerOwnerID();
+        const playerId = spawnedUnit.GetPlayerOwnerID();
         const heroNameIndex = RandomInt(0, this.heroList.length - 1);
         const heroName =
           this.heroList.length === 0
             ? oldHeroName
             : this.heroList[heroNameIndex];
-        const oldHeroXP = oldHero.GetCurrentXP();
+        const oldHeroXP = spawnedUnit.GetCurrentXP();
         PlayerResource.ReplaceHeroWith(
           playerId,
           heroName,
-          oldHero.GetGold(),
+          spawnedUnit.GetGold(),
           oldHeroXP
         );
         const player = PlayerResource.GetPlayer(playerId)!;
@@ -560,11 +583,9 @@ export class GameMode {
           .AddExperience(oldHeroXP, ModifyXpReason.UNSPECIFIED, false, true);
       } else {
         if (!this.wasRespawned) {
-          oldHero.AddItemByName("item_blink");
+          spawnedUnit.AddItemByName("item_blink");
         }
-        print(oldHeroName);
         this.heroList = this.heroList.filter((name) => name !== oldHeroName);
-        DeepPrintTable(this.heroList);
         this.wasRespawned = false;
       }
     }

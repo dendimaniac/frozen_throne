@@ -2,46 +2,26 @@ import { BaseModifier, registerModifier } from "../lib/dota_ts_adapter";
 
 @registerModifier()
 export class modifier_no_health_regen extends BaseModifier {
-  healthRegen!: number;
+  unit!: CDOTA_BaseNPC;
 
   OnCreated(): void {
-    if (IsServer()) {
-      const unit = this.GetParent() as CDOTA_BaseNPC_Hero;
-      this.healthRegen = unit.GetBaseHealthRegen();
-      this.SetHasCustomTransmitterData(true);
-      this.StartIntervalThink(0.1);
-    }
+    this.unit = this.GetParent();
   }
 
-  OnIntervalThink(): void {
-    this.OnRefresh({});
-  }
-
-  // Override speed given by Modifier_Speed
   DeclareFunctions(): ModifierFunction[] {
     return [ModifierFunction.HEALTH_REGEN_CONSTANT];
   }
 
   GetModifierConstantHealthRegen(): number {
-    return -this.healthRegen;
+    if (this.unit.IsHero()) {
+      const hero = this.unit as CDOTA_BaseNPC_Hero;
+      return -(hero.GetStrength() * 0.1);
+    }
+
+    return 0;
   }
 
   IsHidden(): boolean {
     return true;
-  }
-
-  OnRefresh(_: object): void {
-    if (IsServer()) {
-      this.OnCreated();
-      this.SendBuffRefreshToClients();
-    }
-  }
-
-  AddCustomTransmitterData() {
-    return { healthRegen: this.healthRegen };
-  }
-
-  HandleCustomTransmitterData(data: { healthRegen: number }) {
-    this.healthRegen = data.healthRegen;
   }
 }

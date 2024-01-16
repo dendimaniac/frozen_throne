@@ -142,7 +142,7 @@
 		// Status
 		//----------------------------------------------------------------
 		"StatusHealth"				"50"		// Base health.
-		"StatusHealthRegen"			"0.5"		// Health regeneration rate.
+		"StatusHealthRegen"			"0"		// Health regeneration rate.
 		"StatusMana"				"0"			// Base mana.
 		"StatusManaRegen"			"0.0"		// Mana regeneration rate.
 
@@ -175,7 +175,6 @@
 
   "npc_dota_creature_zombie_night"
 	{
-		"UnitLabel"					"zombie"
 		"Model"							"models/heroes/undying/undying_minion.vmdl"
 		"BaseClass"					"npc_dota_creature"
 		"SoundSet"					"n_creep_Ranged"
@@ -224,7 +223,7 @@
 		// Status
 		//----------------------------------------------------------------
 		"StatusHealth"				"50"		// Base health.
-		"StatusHealthRegen"			"0.5"		// Health regeneration rate.
+		"StatusHealthRegen"			"0"		// Health regeneration rate.
 		"StatusMana"				"0"			// Base mana.
 		"StatusManaRegen"			"0.0"		// Mana regeneration rate.
 
@@ -321,6 +320,12 @@
     "ModelScale" 				".9"
 		"UnitLabel"			"police_station"
 		"StatusHealth"				"1"
+    "StatusHealthRegen"			"0"
+
+    // Attack
+		//----------------------------------------------------------------
+    "AttackCapabilities"		"DOTA_UNIT_CAP_NO_ATTACK"
+    "AttackRange"				"0"
 	}
 
   "chest_grocery_store"
@@ -330,6 +335,12 @@
     "ModelScale" 				".9"
 		"UnitLabel"			"grocery_store"
 		"StatusHealth"				"1"
+    "StatusHealthRegen"			"0"
+
+    // Attack
+		//----------------------------------------------------------------
+    "AttackCapabilities"		"DOTA_UNIT_CAP_NO_ATTACK"
+    "AttackRange"				"0"
 	}
 
   "chest_school"
@@ -339,6 +350,12 @@
     "ModelScale" 				".9"
 		"UnitLabel"			"school"
 		"StatusHealth"				"1"
+    "StatusHealthRegen"			"0"
+
+    // Attack
+		//----------------------------------------------------------------
+    "AttackCapabilities"		"DOTA_UNIT_CAP_NO_ATTACK"
+    "AttackRange"				"0"
 	}
 
   "chest_library"
@@ -348,6 +365,12 @@
     "ModelScale" 				".9"
 		"UnitLabel"			"library"
 		"StatusHealth"				"1"
+    "StatusHealthRegen"			"0"
+
+    // Attack
+		//----------------------------------------------------------------
+    "AttackCapabilities"		"DOTA_UNIT_CAP_NO_ATTACK"
+    "AttackRange"				"0"
 	}
 
   "chest_hospital"
@@ -357,6 +380,12 @@
     "ModelScale" 				".9"
 		"UnitLabel"			"hospital"
 		"StatusHealth"				"1"
+    "StatusHealthRegen"			"0"
+
+    // Attack
+		//----------------------------------------------------------------
+    "AttackCapabilities"		"DOTA_UNIT_CAP_NO_ATTACK"
+    "AttackRange"				"0"
 	}
 
   "chest_gas_station"
@@ -366,6 +395,12 @@
     "ModelScale" 				".9"
 		"UnitLabel"			"gas_station"
 		"StatusHealth"				"1"
+    "StatusHealthRegen"			"0"
+
+    // Attack
+		//----------------------------------------------------------------
+    "AttackCapabilities"		"DOTA_UNIT_CAP_NO_ATTACK"
+    "AttackRange"				"0"
 	}
 
   "objective_stash"
@@ -375,6 +410,7 @@
     "ConsideredHero"			"1"
     "ModelScale" 				".9"
 		"StatusHealth"				"1"
+    "StatusHealthRegen"			"0"
     "HasInventory" "1"
 	}
 }

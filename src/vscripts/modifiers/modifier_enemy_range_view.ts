@@ -10,7 +10,7 @@ export class modifier_enemy_range_view extends BaseModifier {
   OnCreated(): void {
     if (IsClient()) {
       this.unit = this.GetParent();
-      this.StartIntervalThink(FrameTime() / 3);
+      this.StartIntervalThink(0);
       this.radius = this.unit.GetCurrentVisionRange();
 
       this.particleId = ParticleManager.CreateParticle(

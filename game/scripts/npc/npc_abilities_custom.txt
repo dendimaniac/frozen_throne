@@ -11,20 +11,20 @@
 		// General
 		//-------------------------------------------------------------------------------------------------------------
 		"AbilityBehavior"				"DOTA_ABILITY_BEHAVIOR_NO_TARGET | DOTA_ABILITY_BEHAVIOR_IMMEDIATE"
-		"AbilityUnitDamageType"			"DAMAGE_TYPE_PHYSICAL"	
+		"AbilityUnitDamageType"			"DAMAGE_TYPE_PHYSICAL"
 
 		// Casting
 		//-------------------------------------------------------------------------------------------------------------
 		"AbilityCastPoint"				"0.0 0.0 0.0 0.0"
 
-		// Time		
+		// Time
 		//-------------------------------------------------------------------------------------------------------------
 		"AbilityCooldown"				"17.0 17.0 17.0 17.0"
 
 		// Cost
 		//-------------------------------------------------------------------------------------------------------------
 		"AbilityManaCost"				"100"
-		
+
 		// Special
 		//-------------------------------------------------------------------------------------------------------------
 		"AbilitySpecial"
@@ -59,7 +59,7 @@
 		"AbilityUnitTargetType"	"DOTA_UNIT_TARGET_HERO | DOTA_UNIT_TARGET_BASIC"
 		"AbilityUnitDamageType"			"DAMAGE_TYPE_MAGICAL"
 
-		// Time		
+		// Time
 		//-------------------------------------------------------------------------------------------------------------
 		"AbilityCooldown"				"20.0 15.0 10.0 5.0"
 
@@ -87,4 +87,50 @@
 		}
 	}
 
+  //=================================================================================================================
+	// Zombie: Damage block passive
+	//=================================================================================================================
+	"zombie_damage_block"
+	{
+		"BaseClass"							"ability_lua"
+    "ScriptFile"            "abilities/units/zombie_damage_block"
+		// General
+		//-------------------------------------------------------------------------------------------------------------
+		"AbilityBehavior"				"DOTA_ABILITY_BEHAVIOR_PASSIVE"
+    "AbilityTextureName"    "pudge_flesh_heap"
+
+    "MaxLevel"              "1"
+    "RequiredLevel"         "1"
+
+		// Special
+		"AbilitySpecial"
+		{
+			"01"
+			{
+				"var_type"					"FIELD_FLOAT"
+				"block_chance"	"50.0"
+			}
+      "02"
+			{
+				"var_type"					"FIELD_FLOAT"
+				"block_percentage"	"50.0"
+			}
+		}
+	}
+
+  //=================================================================================================================
+	// Zombie: Chest noise passive
+	//=================================================================================================================
+	"chest_noise"
+	{
+		"BaseClass"							"ability_lua"
+    "ScriptFile"            "abilities/units/chest_noise"
+		// General
+		//-------------------------------------------------------------------------------------------------------------
+		"AbilityBehavior"				"DOTA_ABILITY_BEHAVIOR_PASSIVE"
+    "AbilityTextureName"    "alchemist_goblins_greed"
+
+    "MaxLevel"              "1"
+    "RequiredLevel"         "1"
+	}
 }

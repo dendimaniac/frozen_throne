@@ -17,40 +17,39 @@ export class modifier_chest_noise extends BaseModifier {
   noiseLocationIndex: number = 0;
   noiseLocations!: NoiseLocations;
   indexToCheck!: number[];
-  parentName: string = "";
+  unit!: CDOTA_BaseNPC;
 
-  OnCreated(params: { noiseLocationIndex: number }): void {
+  OnCreated(): void {
     if (IsServer()) {
-      this.parentName = this.GetParent().GetUnitName();
-      this.noiseLocationIndex = params.noiseLocationIndex;
-      const noiseEntities = Entities.FindAllByName(
-        `location_noise_${this.noiseLocationIndex}`
-      );
-      // print(`Noise location: ${params.noiseLocationIndex}`);
-      this.noiseLocations = noiseEntities.reduce<NoiseLocations>(
-        (prevValue, currentValue) => {
-          const index = currentValue.Attribute_GetIntValue("index", 0);
-          const target = Entities.FindByName(
-            undefined,
-            `location_noise_target_${this.noiseLocationIndex}_${index}`
-          )!;
-          print(`Target: ${target.GetName()}, index: ${index}`);
-          prevValue[index] = {
-            spawner: currentValue,
-            target: target,
-            spawnedZombie: undefined,
-          };
-          return prevValue;
-        },
-        {}
-      );
-      this.indexToCheck = Object.keys(this.noiseLocations).map((key) =>
-        parseInt(key)
-      );
-
-      // print(`${this.GetParent().GetUnitName()}, ${this.noiseLocationIndex}`);
-      // DeepPrintTable(this.noiseLocations);
+      this.unit = this.GetParent();
     }
+  }
+
+  SetNoiseLocationIndex(noiseLocationIndex: number) {
+    print(`Noise: ${noiseLocationIndex}`);
+    this.noiseLocationIndex = noiseLocationIndex;
+    const noiseEntities = Entities.FindAllByName(
+      `location_noise_${this.noiseLocationIndex}`
+    );
+    this.noiseLocations = noiseEntities.reduce<NoiseLocations>(
+      (prevValue, currentValue) => {
+        const index = currentValue.Attribute_GetIntValue("index", 0);
+        const target = Entities.FindByName(
+          undefined,
+          `location_noise_target_${this.noiseLocationIndex}_${index}`
+        )!;
+        prevValue[index] = {
+          spawner: currentValue,
+          target: target,
+          spawnedZombie: undefined,
+        };
+        return prevValue;
+      },
+      {}
+    );
+    this.indexToCheck = Object.keys(this.noiseLocations).map((key) =>
+      parseInt(key)
+    );
   }
 
   DeclareFunctions(): ModifierFunction[] {
@@ -71,8 +70,7 @@ export class modifier_chest_noise extends BaseModifier {
 
   OnAttacked(event: ModifierAttackEvent): void {
     if (IsServer()) {
-      const unitName = event.target.GetUnitName();
-      if (unitName !== this.parentName) return;
+      if (event.target !== this.unit) return;
 
       let existingUnit: CBaseEntity | undefined;
       let randomIndex: number = 0;

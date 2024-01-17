@@ -7,6 +7,7 @@ import { modifier_no_health_regen } from "./modifiers/modifier_no_health_regen";
 import { modifier_enemy_range_view } from "./modifiers/modifier_enemy_range_view";
 import { modifier_gate_under_attack } from "./modifiers/modifier_gate_under_attack";
 import { modifier_chest_noise } from "./modifiers/modifier_chest_noise";
+import { chest_noise } from "./abilities/units/chest_noise";
 
 const heroSelectionTime = 20;
 // null will not force a hero selection
@@ -144,6 +145,7 @@ export class GameMode {
       0
     );
     gameModeEntity.SetBuybackEnabled(false);
+    gameModeEntity.SetRandomHeroBonusItemGrantDisabled(true);
 
     if (forceHero !== null) {
       gameModeEntity.SetCustomGameForceHero(forceHero);
@@ -283,14 +285,10 @@ export class GameMode {
         undefined,
         DotaTeam.CUSTOM_1,
         (chest) => {
-          chest.AddNewModifier(
-            chest,
-            undefined,
-            modifier_chest_noise.name,
-            {
-              noiseLocationIndex: noiseLocationIndex,
-            }
-          );
+          const chestNoiseModifier = chest.FindModifierByName(
+            modifier_chest_noise.name
+          ) as modifier_chest_noise;
+          chestNoiseModifier.SetNoiseLocationIndex(noiseLocationIndex);
         }
       );
       availableLocations.splice(randomLocationIndex, 1);

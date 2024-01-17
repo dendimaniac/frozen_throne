@@ -103,7 +103,7 @@
 
 		// Abilities
 		//----------------------------------------------------------------
-		"Ability1"					""			// Ability 1
+		"Ability1"					"zombie_damage_block"			// Ability 1
 		"Ability2"					""			// Ability 2
 		"Ability3"					""			// Ability 3
 		"Ability4"					""			// Ability 4
@@ -326,6 +326,8 @@
 		//----------------------------------------------------------------
     "AttackCapabilities"		"DOTA_UNIT_CAP_NO_ATTACK"
     "AttackRange"				"0"
+
+    "Ability1"					"chest_noise"
 	}
 
   "chest_grocery_store"
@@ -341,6 +343,8 @@
 		//----------------------------------------------------------------
     "AttackCapabilities"		"DOTA_UNIT_CAP_NO_ATTACK"
     "AttackRange"				"0"
+
+    "Ability1"					"chest_noise"
 	}
 
   "chest_school"
@@ -356,6 +360,8 @@
 		//----------------------------------------------------------------
     "AttackCapabilities"		"DOTA_UNIT_CAP_NO_ATTACK"
     "AttackRange"				"0"
+
+    "Ability1"					"chest_noise"
 	}
 
   "chest_library"
@@ -371,6 +377,8 @@
 		//----------------------------------------------------------------
     "AttackCapabilities"		"DOTA_UNIT_CAP_NO_ATTACK"
     "AttackRange"				"0"
+
+    "Ability1"					"chest_noise"
 	}
 
   "chest_hospital"
@@ -386,6 +394,8 @@
 		//----------------------------------------------------------------
     "AttackCapabilities"		"DOTA_UNIT_CAP_NO_ATTACK"
     "AttackRange"				"0"
+
+    "Ability1"					"chest_noise"
 	}
 
   "chest_gas_station"
@@ -401,6 +411,8 @@
 		//----------------------------------------------------------------
     "AttackCapabilities"		"DOTA_UNIT_CAP_NO_ATTACK"
     "AttackRange"				"0"
+
+    "Ability1"					"chest_noise"
 	}
 
   "objective_stash"

@@ -7,14 +7,12 @@ import { modifier_no_health_regen } from "./modifiers/modifier_no_health_regen";
 import { modifier_enemy_range_view } from "./modifiers/modifier_enemy_range_view";
 import { modifier_gate_under_attack } from "./modifiers/modifier_gate_under_attack";
 import { modifier_chest_noise } from "./modifiers/modifier_chest_noise";
-import { chest_noise } from "./abilities/units/chest_noise";
+import { ability_chest_noise } from "./abilities/units/ability_chest_noise";
 
 const heroSelectionTime = 20;
 // null will not force a hero selection
 const forceHero: string | null = null;
 let spawnedZombies: { [key: number]: CDOTA_BaseNPC | undefined } = {};
-let viewRangeParticles: (ViewRangeParticles | undefined)[] = [];
-const prevPositions: Vector[] = [];
 
 type ViewRangeParticles = {
   entityId: EntityIndex;
@@ -478,17 +476,6 @@ export class GameMode {
         // );
         // if (zombieIndex > -1) specificSpawnerZombies.splice(zombieIndex, 1);
       });
-      const particle = viewRangeParticles.find(
-        (item) => item?.entityId === event.entindex_killed
-      );
-      if (particle) {
-        ParticleManager.DestroyParticle(particle.particleId, true);
-        ParticleManager.ReleaseParticleIndex(particle.particleId);
-        viewRangeParticles = viewRangeParticles.splice(
-          viewRangeParticles.indexOf(particle),
-          1
-        );
-      }
     } else if (unitLabel === "gate") {
       this.gateKilled++;
       const gateIndex = this.gateEntities.findIndex(
@@ -581,7 +568,7 @@ export class GameMode {
           .AddExperience(oldHeroXP, ModifyXpReason.UNSPECIFIED, false, true);
       } else {
         if (!this.wasRespawned) {
-          spawnedUnit.AddItemByName("item_blink");
+          spawnedUnit.AddItemByName("item_gate_repair");
         }
         this.heroList = this.heroList.filter((name) => name !== oldHeroName);
         this.wasRespawned = false;

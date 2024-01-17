@@ -3,7 +3,7 @@ import { modifier_zombie_damage_block } from "../../modifiers/modifier_zombie_da
 import { InnateAbility } from "../innate_ability";
 
 @registerAbility()
-export class zombie_damage_block extends InnateAbility {
+export class ability_zombie_damage_block extends InnateAbility {
   GetIntrinsicModifierName(): string {
     return modifier_zombie_damage_block.name;
   }

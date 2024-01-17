@@ -75,7 +75,7 @@ export class ChestItemDropHandler {
           maxItemCount += itemSets[itemName];
           entitySpawned.AddItemByName(itemName);
         });
-      entitySpawned.SetBaseMaxHealth(maxItemCount);
+      entitySpawned.SetMaxHealth(maxItemCount);
       entitySpawned.ModifyHealth(maxItemCount, undefined, false, 0);
     }
   }

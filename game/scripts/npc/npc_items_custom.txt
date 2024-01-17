@@ -1,3 +1,88 @@
 "DOTAAbilities"
 {
+  "item_blink_custom"
+  {
+    "ID"                        "1000"
+    "BaseClass"						      "item_lua"
+		"AbilityTextureName"			  "item_blink"
+    "ScriptFile"                "items/item_blink_custom"
+
+		"ItemShopTags"					"consumable"
+		"ItemQuality"					  "consumable"
+    "ItemShareability"			"ITEM_FULLY_SHAREABLE"
+    "ItemDroppable"         "1"
+		"ItemStackable"					"0"
+    "ItemInitialCharges" 		"1"
+    "ItemDisplayCharges" 		"1"
+		"ItemPermanent" 				"0"
+		"ItemRequiresCharges" 	"1"
+
+		"AbilityBehavior"				"DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_DIRECTIONAL | DOTA_ABILITY_BEHAVIOR_ROOT_DISABLES"
+    "AbilitySharedCooldown" "item_blink_custom"
+		"AbilityCooldown"				"15.0"
+
+		"precache"
+		{
+			"particle"					"particles/items_fx/blink_dagger_start.vpcf"
+			"particle"					"particles/items_fx/blink_dagger_end.vpcf"
+		}
+
+		"AbilitySpecial"
+		{
+			"01"
+      {
+        "var_type"	        "FIELD_INTEGER"
+        "cast_range"				"1200"
+      }
+		}
+  }
+
+  "item_gate_repair"
+  {
+    "ID"                        "1001"
+    "BaseClass"						      "item_lua"
+		"AbilityTextureName"			  "item_havoc_hammer"
+    "ScriptFile"                "items/item_gate_repair"
+
+		"ItemShopTags"					"consumable"
+		"ItemQuality"					  "consumable"
+    "ItemShareability"			"ITEM_FULLY_SHAREABLE"
+    "ItemDroppable"         "1"
+		"ItemStackable"					"1"
+    "ItemInitialCharges" 		"1"
+    "ItemDisplayCharges" 		"1"
+		"ItemPermanent" 				"0"
+		"ItemRequiresCharges" 	"1"
+
+		"AbilityBehavior"				  "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET"
+    "AbilityUnitTargetTeam"   "DOTA_UNIT_TARGET_TEAM_FRIENDLY"
+    "AbilityUnitTargetType"   "DOTA_UNIT_TARGET_CREEP"
+    "AbilitySharedCooldown"   "item_gate_repair"
+    "AbilityCastRange"        "300"
+		"AbilityCooldown"				  "15.0"
+
+		"precache"
+		{
+			"particle"					"particles/items_fx/healing_flask.vpcf"
+		}
+
+		"AbilitySpecial"
+		{
+			"01"
+      {
+        "var_type"	        "FIELD_INTEGER"
+        "heal_per_tick"				"50"
+      }
+      "02"
+      {
+        "var_type"	        "FIELD_FLOAT"
+        "duration"				"10"
+      }
+      "03"
+      {
+        "var_type"	        "FIELD_FLOAT"
+        "think_interval"				"0.5"
+      }
+		}
+  }
 }

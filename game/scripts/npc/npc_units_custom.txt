@@ -103,7 +103,7 @@
 
 		// Abilities
 		//----------------------------------------------------------------
-		"Ability1"					"zombie_damage_block"			// Ability 1
+		"Ability1"					"ability_zombie_damage_block"			// Ability 1
 		"Ability2"					""			// Ability 2
 		"Ability3"					""			// Ability 3
 		"Ability4"					""			// Ability 4
@@ -311,6 +311,8 @@
 		// Team
 		//----------------------------------------------------------------
 		"TeamName"					"DOTA_TEAM_GOODGUYS"						// Team name.
+
+    "UnitRelationshipClass"       "DOTA_NPC_UNIT_RELATIONSHIP_TYPE_BUILDING"
 	}
 
   "chest_police_station"
@@ -327,7 +329,7 @@
     "AttackCapabilities"		"DOTA_UNIT_CAP_NO_ATTACK"
     "AttackRange"				"0"
 
-    "Ability1"					"chest_noise"
+    "Ability1"					"ability_chest_noise"
 	}
 
   "chest_grocery_store"
@@ -344,7 +346,7 @@
     "AttackCapabilities"		"DOTA_UNIT_CAP_NO_ATTACK"
     "AttackRange"				"0"
 
-    "Ability1"					"chest_noise"
+    "Ability1"					"ability_chest_noise"
 	}
 
   "chest_school"
@@ -361,7 +363,7 @@
     "AttackCapabilities"		"DOTA_UNIT_CAP_NO_ATTACK"
     "AttackRange"				"0"
 
-    "Ability1"					"chest_noise"
+    "Ability1"					"ability_chest_noise"
 	}
 
   "chest_library"
@@ -378,7 +380,7 @@
     "AttackCapabilities"		"DOTA_UNIT_CAP_NO_ATTACK"
     "AttackRange"				"0"
 
-    "Ability1"					"chest_noise"
+    "Ability1"					"ability_chest_noise"
 	}
 
   "chest_hospital"
@@ -395,7 +397,7 @@
     "AttackCapabilities"		"DOTA_UNIT_CAP_NO_ATTACK"
     "AttackRange"				"0"
 
-    "Ability1"					"chest_noise"
+    "Ability1"					"ability_chest_noise"
 	}
 
   "chest_gas_station"
@@ -412,7 +414,7 @@
     "AttackCapabilities"		"DOTA_UNIT_CAP_NO_ATTACK"
     "AttackRange"				"0"
 
-    "Ability1"					"chest_noise"
+    "Ability1"					"ability_chest_noise"
 	}
 
   "objective_stash"

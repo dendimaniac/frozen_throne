@@ -26,7 +26,6 @@ export class modifier_chest_noise extends BaseModifier {
   }
 
   SetNoiseLocationIndex(noiseLocationIndex: number) {
-    print(`Noise: ${noiseLocationIndex}`);
     this.noiseLocationIndex = noiseLocationIndex;
     const noiseEntities = Entities.FindAllByName(
       `location_noise_${this.noiseLocationIndex}`

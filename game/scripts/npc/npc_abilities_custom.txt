@@ -90,10 +90,10 @@
   //=================================================================================================================
 	// Zombie: Damage block passive
 	//=================================================================================================================
-	"zombie_damage_block"
+	"ability_zombie_damage_block"
 	{
 		"BaseClass"							"ability_lua"
-    "ScriptFile"            "abilities/units/zombie_damage_block"
+    "ScriptFile"            "abilities/units/ability_zombie_damage_block"
 		// General
 		//-------------------------------------------------------------------------------------------------------------
 		"AbilityBehavior"				"DOTA_ABILITY_BEHAVIOR_PASSIVE"
@@ -121,10 +121,10 @@
   //=================================================================================================================
 	// Zombie: Chest noise passive
 	//=================================================================================================================
-	"chest_noise"
+	"ability_chest_noise"
 	{
 		"BaseClass"							"ability_lua"
-    "ScriptFile"            "abilities/units/chest_noise"
+    "ScriptFile"            "abilities/units/ability_chest_noise"
 		// General
 		//-------------------------------------------------------------------------------------------------------------
 		"AbilityBehavior"				"DOTA_ABILITY_BEHAVIOR_PASSIVE"

@@ -8,30 +8,24 @@ export class modifier_gate_under_attack extends BaseModifier {
   underAttackSound = "announcer_ann_custom_generic_alert_01";
   soundDuration!: number;
   soundPlayingTimer: string | undefined;
+  gateNum!: number;
 
   OnCreated(): void {
     if (IsServer()) {
       this.unit = this.GetParent();
+      this.gateNum = this.unit.Attribute_GetIntValue("index", 0);
+      print(`Gate num: ${this.gateNum}`);
       this.soundDuration =
         this.unit.GetSoundDuration(this.underAttackSound, "") + soundDelay;
     }
   }
 
   DeclareFunctions(): ModifierFunction[] {
-    return [ModifierFunction.ON_ATTACKED];
+    return [ModifierFunction.INCOMING_DAMAGE_PERCENTAGE];
   }
 
-  CheckState(): Partial<Record<ModifierState, boolean>> {
-    return {
-      [ModifierState.FLYING_FOR_PATHING_PURPOSES_ONLY]: true,
-      [ModifierState.NO_UNIT_COLLISION]: true,
-    };
-  }
-
-  OnAttacked(event: ModifierAttackEvent): void {
+  GetModifierIncomingDamage_Percentage(event: ModifierAttackEvent): number {
     if (IsServer()) {
-      if (event.target.GetName() !== "gate") return;
-
       if (this.soundPlayingTimer === undefined) {
         EmitAnnouncerSoundForTeam(this.underAttackSound, DotaTeam.GOODGUYS);
         this.soundPlayingTimer = Timers.CreateTimer(this.soundDuration, () => {
@@ -40,9 +34,21 @@ export class modifier_gate_under_attack extends BaseModifier {
         });
       }
     }
+
+    return 100;
   }
 
   IsHidden(): boolean {
     return true;
+  }
+
+  OnRemoved(death: boolean): void {
+    if (death) {
+      const gateBlockEntity = Entities.FindByName(
+        undefined,
+        `gate_obstruction_${this.gateNum}`
+      )! as CDOTA_SimpleObstruction;
+      gateBlockEntity.Destroy();
+    }
   }
 }

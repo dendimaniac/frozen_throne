@@ -14,7 +14,9 @@ registerEntityFunction("OnStartTouch", (trigger: TriggerEvent) => {
   const gateBlockEntity = Entities.FindByName(
     undefined,
     `gate_obstruction_${gateNum}`
-  )! as CDOTA_SimpleObstruction;
+  ) as CDOTA_SimpleObstruction | undefined;
+  if (gateBlockEntity === undefined) return;
+
   gateBlockEntity.SetEnabled(false, false);
   print(`TEST: Gate disabled!`);
 });
@@ -26,6 +28,8 @@ registerEntityFunction("OnEndTouchAll", (trigger: TriggerEvent) => {
     undefined,
     `gate_obstruction_${gateNum}`
   )! as CDOTA_SimpleObstruction;
+  if (gateBlockEntity === undefined) return;
+
   gateBlockEntity.SetEnabled(true, false);
   print(`TEST: Gate enabled!`);
 });

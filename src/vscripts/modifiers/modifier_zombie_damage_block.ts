@@ -21,7 +21,7 @@ export class modifier_zombie_damage_block extends BaseModifier {
   GetModifierIncomingDamage_Percentage(event: ModifierAttackEvent): number {
     if (IsServer()) {
       if (event.target === this.unit) {
-        var canBlock = RandomFloat(0, 100) <= this.blockChance;
+        let canBlock = RandomFloat(0, 100) <= this.blockChance;
         if (canBlock) {
           return -this.blockPercentage;
         }

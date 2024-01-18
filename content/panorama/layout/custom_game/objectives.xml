@@ -21,12 +21,9 @@
         <Image class="BannerImage" src="file://{resources}/images/custom_game/tstl.png" />
         <Panel class="DescriptionContainer">
           <!-- <Label class="DescriptionTitle" text="Main" /> -->
-          <Label class="Description" text="Victory: 4 gems in the Objective Stash" />
+          <Label id="main-quest-text" class="Description" text="#main_quest_item_victory" />
           <Label class="Description" text="Lose: 4 gates broken" />
         </Panel>
-        <Button id="CloseButton" onactivate="OnChangeTeamButtonClicked()">
-          <!-- <Label text="Close" /> -->
-        </Button>
       </Panel>
     </Panel>
   </Panel>

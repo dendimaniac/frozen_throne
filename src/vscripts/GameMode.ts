@@ -8,6 +8,8 @@ import { modifier_enemy_range_view } from "./modifiers/modifier_enemy_range_view
 import { modifier_gate_under_attack } from "./modifiers/modifier_gate_under_attack";
 import { modifier_chest_noise } from "./modifiers/modifier_chest_noise";
 import { ability_chest_noise } from "./abilities/units/ability_chest_noise";
+import { QuestSystem } from "./QuestSystem";
+import { modifier_permanent_phased } from "./modifiers/modifier_permanent_phased";
 
 const heroSelectionTime = 20;
 // null will not force a hero selection
@@ -36,7 +38,6 @@ export class GameMode {
   gatePositions: Vector[] = [];
   gateZombieSpawners: CBaseEntity[] = [];
   gateKilled: number = 0;
-  goalItemAdded: number = 0;
   heroList: string[] = [];
 
   public static Precache(this: void, context: CScriptPrecacheContext) {
@@ -149,35 +150,6 @@ export class GameMode {
       gameModeEntity.SetCustomGameForceHero(forceHero);
     }
 
-    gameModeEntity.SetItemAddedToInventoryFilter(
-      (event: ItemAddedToInventoryFilterEvent) => {
-        const inventoryParent = EntIndexToHScript(
-          event.inventory_parent_entindex_const
-        ) as CDOTA_BaseNPC | undefined;
-        const itemEntIndex = EntIndexToHScript(event.item_entindex_const) as
-          | CDOTA_BaseNPC
-          | undefined;
-        if (
-          inventoryParent &&
-          inventoryParent.GetUnitName() === "objective_stash"
-        ) {
-          if (itemEntIndex && itemEntIndex.GetName() === "item_gem") {
-            print(`ItemEntIndex: ${itemEntIndex.GetName()}`);
-            this.goalItemAdded++;
-            print(`Goal added: ${this.goalItemAdded}`);
-            if (this.goalItemAdded >= 4) {
-              GameRules.SetGameWinner(DotaTeam.GOODGUYS);
-            }
-            return true;
-          }
-          return false;
-        }
-
-        return true;
-      },
-      this
-    );
-
     gameModeEntity.SetDamageFilter((event: DamageFilterEvent) => {
       const victim = EntIndexToHScript(
         event.entindex_victim_const
@@ -211,6 +183,8 @@ export class GameMode {
       HudVisibility.VISIBILITY_AGHANIMS_STATUS,
       false
     );
+
+    new QuestSystem();
     new ChestItemDropHandler();
   }
 
@@ -394,6 +368,12 @@ export class GameMode {
     this.gateEntities = Entities.FindAllByName("gate") as CDOTA_BaseNPC[];
     this.gateEntities.forEach((gate) => {
       this.gatePositions.push(gate!.GetAbsOrigin());
+      gate.AddNewModifier(
+        gate,
+        undefined,
+        modifier_permanent_phased.name,
+        undefined
+      );
       gate.AddNewModifier(
         gate,
         undefined,

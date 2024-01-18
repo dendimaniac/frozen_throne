@@ -12,29 +12,33 @@
  */
 
 // To declare an event for use, add it to this table with the type of its data
+interface CustomNetTableDeclarations {
+  quest_system: {
+    setting: {
+      name: string;
+      count: number;
+    };
+  };
+}
+
 interface CustomGameEventDeclarations {
-    example_event: ExampleEventData,
-    ui_panel_closed: UIPanelClosedEventData,
-    alt_active: AltButtonActiveEventData,
-    alt_inactive: AltButtonInactiveEventData,
-    round_time_updated: RoundTimeUpdatedEventData,
+  example_event: ExampleEventData;
+  ui_panel_closed: UIPanelClosedEventData;
+  round_time_updated: RoundTimeUpdatedEventData;
 }
 
 interface RoundTimeUpdatedEventData {
-  maxRoundTimer: number,
-  currentRoundTimer: number
+  maxRoundTimer: number;
+  currentRoundTimer: number;
 }
 
 // Define the type of data sent by the example_event event
 interface ExampleEventData {
-    myNumber: number;
-    myBoolean: boolean;
-    myString: string;
-    myArrayOfNumbers: number[]
+  myNumber: number;
+  myBoolean: boolean;
+  myString: string;
+  myArrayOfNumbers: number[];
 }
 
 // This event has no data
 interface UIPanelClosedEventData {}
-
-interface AltButtonActiveEventData {}
-interface AltButtonInactiveEventData {}

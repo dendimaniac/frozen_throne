@@ -404,7 +404,7 @@ export class GameMode {
     });
     this.gateZombieSpawners = Entities.FindAllByName("gate_zombie_spawner");
 
-    const roundTimer = new RoundTimer(3, 3);
+    const roundTimer = new RoundTimer(5, 30);
     roundTimer.addOnCycleUpdatedHandler((timeOfDay, roundPast, nightPast) => {
       if (timeOfDay === TimeOfDay.Day) return;
       if (this.gateEntities.length === 0) return;
@@ -485,7 +485,7 @@ export class GameMode {
       this.gateEntities.splice(gateIndex, 1);
       this.gateZombieSpawners.splice(gateIndex, 1);
       if (this.gateKilled === this.gatePositions.length) {
-        // GameRules.MakeTeamLose(DotaTeam.GOODGUYS);
+        GameRules.MakeTeamLose(DotaTeam.GOODGUYS);
       }
     }
   }

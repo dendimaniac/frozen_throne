@@ -8,12 +8,12 @@ export class VoteSystem {
         `Received vote from: ${data.PlayerID} for: ${data.playerUnderVote}`
       );
       const currentVotes = CustomNetTables.GetTableValue("players", "votes");
-      // if (
-      //   currentVotes !== undefined &&
-      //   currentVotes.playerUnderVote !== undefined
-      // ) {
-      //   error("Trying to vote while another under vote");
-      // }
+      if (
+        currentVotes !== undefined &&
+        currentVotes.playerUnderVote !== undefined
+      ) {
+        error("Trying to vote while another under vote");
+      }
 
       const votedForPlayers = {
         0: data.PlayerID,

@@ -31,7 +31,7 @@ class PlayerPortrait {
   }
 
   sendVote() {
-    // if (this.playerId === Players.GetLocalPlayer()) return;
+    if (this.playerId === Players.GetLocalPlayer()) return;
 
     $.Msg(`Sending vote: ${this.playerId}`);
     GameEvents.SendCustomGameEventToServer("start_player_vote", {

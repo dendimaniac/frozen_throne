@@ -138,7 +138,7 @@ export class GameMode {
     GameRules.SetPostGameTime(5);
     // GameRules.SetSameHeroSelectionEnabled(true);
     const gameModeEntity = GameRules.GetGameModeEntity();
-    gameModeEntity.SetFogOfWarDisabled(true);
+    gameModeEntity.SetFogOfWarDisabled(false);
     gameModeEntity.SetDaynightCycleDisabled(true);
     gameModeEntity.SetCustomAttributeDerivedStatValue(
       AttributeDerivedStats.STRENGTH_HP_REGEN,

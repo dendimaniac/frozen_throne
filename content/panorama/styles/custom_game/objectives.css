@@ -26,6 +26,7 @@
   height: 100px;
   margin-top: 16px;
   flow-children: right;
+  font-size: 16px;
 }
 
 .Objective .BannerImage {
@@ -38,10 +39,10 @@
   margin-left: 24px;
 }
 
-.DescriptionContainer .DescriptionTitle {
-  font-size: 24px;
+.Objective .Description {
+  text-overflow: noclip;
 }
 
-.Objective #CloseButton:hover {
-  background-color: rgb(0, 135, 245);
+.DescriptionContainer .DescriptionTitle {
+  font-size: 24px;
 }

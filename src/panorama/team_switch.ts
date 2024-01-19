@@ -110,7 +110,11 @@ class TeamSwitchVote {
             return;
           }
 
-          this.showPlayerUnderVote(this.playerSetting[this.playerUnderVote]);
+          const playerName = Players.GetPlayerName(this.playerUnderVote);
+          this.showPlayerUnderVote(
+            this.playerSetting[this.playerUnderVote],
+            playerName
+          );
           if (
             Object.values(votes.votedForPlayers).includes(this.localPlayerId)
           ) {
@@ -172,10 +176,14 @@ class TeamSwitchVote {
     this.hideVotes();
   }
 
-  showPlayerUnderVote(heroName: string) {
+  showPlayerUnderVote(heroName: string, playerName: string) {
     const heroImage = this.playerVoteContainer.FindChildTraverse(
       "HeroImage"
     ) as ImagePanel;
+    const playerLabel = this.playerVoteContainer.FindChildTraverse(
+      "PlayerName"
+    ) as LabelPanel;
+    playerLabel.text = playerName;
     heroImage.SetImage(
       "s2r://panorama/images/heroes/" + heroName + "_png.vtex"
     );

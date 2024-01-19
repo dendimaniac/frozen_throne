@@ -20,7 +20,6 @@
       <Panel class="Objective">
         <Image class="BannerImage" src="file://{resources}/images/custom_game/tstl.png" />
         <Panel class="DescriptionContainer">
-          <!-- <Label class="DescriptionTitle" text="Main" /> -->
           <Label id="main-quest-text" class="Description" text="#main_quest_item_victory" />
           <Label class="Description" text="Lose: 4 gates broken" />
         </Panel>

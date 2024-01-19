@@ -13,7 +13,7 @@
   <snippets>
     <snippet name="PlayerPortrait">
       <Panel class="PlayerPortrait" hittest="false">
-        <Image id="HeroImage" hittest="false" />
+        <Image id="HeroImage" class="HeroImage" hittest="false" />
         <Label id="PlayerName" class="PlayerName" />
         <Button id="button_vote" class="VoteButton">
           <Label text="Vote" class="VoteText" />
@@ -33,7 +33,7 @@
     <Panel id="player_vote_panel" class="PlayerVotePanel Hidden">
       <Panel class="PlayerInfo">
         <Image class="HeroImage" id="HeroImage" hittest="false" />
-        <Label id="PlayerName" class="PlayerName" text="TleManiac" />
+        <Label id="PlayerName" class="PlayerName" />
       </Panel>
       <Panel class="TitleContainer">
         <Label class="Title" text="Kick?" />

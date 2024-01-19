@@ -1,8 +1,4 @@
-$.Msg("hereeee");
-$.Msg("TEST");
-
-function OnNetTableChanged(value: { name: string; count: number }) {
-  $.Msg(value);
+function UpdateQuestInfo(value: { name: string; count: number }) {
   $.Msg(`Quest item name: ${value.name}, count: ${value.count}`);
   const roundTimerText = $("#main-quest-text") as LabelPanel;
   roundTimerText.SetDialogVariableInt("count", value.count);
@@ -12,4 +8,4 @@ function OnNetTableChanged(value: { name: string; count: number }) {
   );
 }
 
-OnNetTableChanged(CustomNetTables.GetTableValue("quest_system", "setting")!);
+UpdateQuestInfo(CustomNetTables.GetTableValue("quest_system", "setting")!);

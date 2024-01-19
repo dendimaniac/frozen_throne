@@ -6,5 +6,6 @@
     <CustomUIElement type="Hud" layoutfile="file://{resources}/layout/custom_game/hud.xml" />
     <CustomUIElement type="Hud" layoutfile="file://{resources}/layout/custom_game/timer_slider.xml" />
     <CustomUIElement type="Hud" layoutfile="file://{resources}/layout/custom_game/objectives.xml" />
+    <CustomUIElement type="Hud" layoutfile="file://{resources}/layout/custom_game/team_switch.xml" />
   </Panel>
 </root>

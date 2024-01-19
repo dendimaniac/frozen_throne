@@ -1,0 +1,51 @@
+<root>
+  <scripts>
+    <!-- Included JS script files go here -->
+    <include src="file://{resources}/scripts/custom_game/team_switch.js" />
+  </scripts>
+
+  <styles>
+    <!-- Included css style files go here -->
+    <!-- <include src="s2r://panorama/styles/dotastyles.css" /> -->
+    <include src="file://{resources}/styles/custom_game/team_switch.css" />
+  </styles>
+
+  <snippets>
+    <snippet name="PlayerPortrait">
+      <Panel class="PlayerPortrait" hittest="false">
+        <Image id="HeroImage" hittest="false" />
+        <Label id="PlayerName" class="PlayerName" />
+        <Button id="button_vote" class="VoteButton">
+          <Label text="Vote" class="VoteText" />
+        </Button>
+      </Panel>
+    </snippet>
+  </snippets>
+
+  <Panel hittest="false" class="MainHud">
+    <Panel id="show_hide_panel" class="ShowHideButton">
+      <Label id="panel_id" class="ShowHideText" text="Vote" />
+    </Panel>
+
+    <Panel id="main_panel" class="MainPanel Hidden">
+    </Panel>
+
+    <Panel id="player_vote_panel" class="PlayerVotePanel Hidden">
+      <Panel class="PlayerInfo">
+        <Image class="HeroImage" id="HeroImage" hittest="false" />
+        <Label id="PlayerName" class="PlayerName" text="TleManiac" />
+      </Panel>
+      <Panel class="TitleContainer">
+        <Label class="Title" text="Kick?" />
+      </Panel>
+      <Panel class="VoteOptionsPanel">
+        <Button id="button_vote_for" class="VoteOptionButton For">
+          <Label class="VoteOptionText" text="Yes" />
+        </Button>
+        <Button id="button_vote_against" class="VoteOptionButton Against">
+          <Label class="VoteOptionText" text="No" />
+        </Button>
+      </Panel>
+    </Panel>
+  </Panel>
+</root>

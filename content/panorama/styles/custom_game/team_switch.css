@@ -1,0 +1,137 @@
+.MainHud {
+  width: 100%;
+  height: 100%;
+}
+
+.MainPanel {
+  width: 400px;
+  horizontal-align: right;
+  vertical-align: center;
+  background-color: rgba(0, 0, 0, 0.61);
+  flow-children: down;
+  transition: position 0.2s linear 0.0s;
+  z-index: 1;
+}
+
+.PlayerVotePanel {
+  height: 200px;
+  width: 300px;
+  horizontal-align: right;
+  vertical-align: bottom;
+  background-color: rgba(0, 0, 0, 0.61);
+  flow-children: down;
+  transition: position 0.2s linear 0.0s;
+}
+
+.ShowHideButton {
+  horizontal-align: right;
+  vertical-align: center;
+  background-color: rgba(0, 0, 0, 0.61);
+  width: 100px;
+  height: 50px;
+  border-top: 2px solid #111111FF;
+  border-left: 2px solid #111111FF;
+  border-bottom: 2px solid #111111FF;
+}
+
+.ShowHideButton:hover {
+  background-color: rgba(0, 0, 0, 0.459);
+}
+
+.ShowHideButton .ShowHideText {
+  horizontal-align: center;
+  vertical-align: center;
+}
+
+.MainPanel.Hidden {
+  position: 400px 0 0;
+}
+
+.PlayerVotePanel.Hidden {
+  position: 300px 0 0;
+}
+
+.PlayerVotePanel .TitleContainer {
+  height: fill-parent-flow(1);
+}
+
+.PlayerVotePanel .TitleContainer .Title {
+  text-align: center;
+}
+
+.PlayerPortrait {
+  flow-children: right;
+  color: white;
+  width: 100%;
+}
+
+.Title,
+.VoteOptionText,
+.PlayerName {
+  text-shadow: 0px 0px 1px 3.0 #333333b0;
+  font-size: 24px;
+  text-align: center;
+  vertical-align: center;
+  width: fill-parent-flow(1);
+  overflow: clip;
+  color: white;
+}
+
+.PlayerPortrait .VoteButton {
+  horizontal-align: left;
+  vertical-align: center;
+  background-color: red;
+  height: 100%;
+  width: 100px;
+}
+
+.PlayerPortrait .VoteButton:hover {
+  background-color: blue;
+}
+
+.PlayerInfo {
+  flow-children: right;
+}
+
+.VoteOptionsPanel {
+  flow-children: left;
+  width: 100%;
+}
+
+.VoteOptionButton {
+  width: fill-parent-flow(1);
+  height: 50px;
+}
+
+.VoteOptionsPanel .VoteOptionText {
+  font-size: 32px;
+  color: white;
+  width: 100%;
+}
+
+.VoteOptionsPanel .VoteOptionButton.For {
+  background-color: green;
+}
+
+.VoteOptionsPanel .VoteOptionButton.For:hover {
+  background-color: rgb(0, 94, 0);
+}
+
+.VoteOptionsPanel .VoteOptionButton.Against {
+  background-color: red;
+}
+
+.VoteOptionsPanel .VoteOptionButton.Against:hover {
+  background-color: rgb(206, 0, 0);
+}
+
+.PlayerPortrait .VoteText {
+  vertical-align: center;
+  font-size: 24px;
+  horizontal-align: center;
+  text-shadow: 0px 0px 1px 3.0 #333333b0;
+}
+
+.VoteOptionsPanel .VoteOptionButton.NonActive {
+  background-color: rgb(31, 31, 31);
+}

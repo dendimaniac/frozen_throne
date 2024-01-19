@@ -19,18 +19,49 @@ interface CustomNetTableDeclarations {
       count: number;
     };
   };
+  players: {
+    selectedHeroes: PlayerSetting;
+    votes: Votes;
+  };
 }
+
+type PlayerSetting = Record<PlayerID, string>;
+
+type Votes = {
+  playerUnderVote: PlayerID | undefined;
+  votedForPlayers: VotedPlayers;
+  votedAgainstPlayers: VotedPlayers;
+};
+
+type VotedPlayers = {
+  [key: number]: PlayerID;
+};
 
 interface CustomGameEventDeclarations {
   example_event: ExampleEventData;
   ui_panel_closed: UIPanelClosedEventData;
   round_time_updated: RoundTimeUpdatedEventData;
+  start_player_vote: StartPlayerVoteData;
+  submit_vote_option: SubmitVoteOptionData;
+  end_vote: EndVoteData
 }
 
 interface RoundTimeUpdatedEventData {
   maxRoundTimer: number;
   currentRoundTimer: number;
 }
+
+interface StartPlayerVoteData {
+  playerUnderVote: PlayerID;
+}
+
+type VoteChoice = "for" | "against";
+
+interface SubmitVoteOptionData {
+  vote: VoteChoice;
+}
+
+interface EndVoteData {}
 
 // Define the type of data sent by the example_event event
 interface ExampleEventData {

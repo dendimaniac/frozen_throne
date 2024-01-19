@@ -10,6 +10,7 @@ import { modifier_chest_noise } from "./modifiers/modifier_chest_noise";
 import { ability_chest_noise } from "./abilities/units/ability_chest_noise";
 import { QuestSystem } from "./QuestSystem";
 import { modifier_permanent_phased } from "./modifiers/modifier_permanent_phased";
+import { VoteSystem } from "./VoteSystem";
 
 const heroSelectionTime = 20;
 // null will not force a hero selection
@@ -184,6 +185,7 @@ export class GameMode {
       false
     );
 
+    new VoteSystem();
     new QuestSystem();
     new ChestItemDropHandler();
   }
@@ -206,6 +208,7 @@ export class GameMode {
     }
 
     if (state === GameState.STRATEGY_TIME) {
+      let playerSetting = {} as PlayerSetting;
       for (
         let playerIndex: PlayerID = 0;
         playerIndex < DOTA_MAX_TEAM_PLAYERS;
@@ -213,19 +216,29 @@ export class GameMode {
       ) {
         const playerId = playerIndex as PlayerID;
         const player = PlayerResource.GetPlayer(playerId);
-        if (player !== undefined && !PlayerResource.HasSelectedHero(playerId)) {
-          player.MakeRandomHeroSelection();
+        if (player !== undefined) {
+          if (!PlayerResource.HasSelectedHero(playerId)) {
+            player.MakeRandomHeroSelection();
+          }
+          playerSetting[playerId] =
+            PlayerResource.GetSelectedHeroName(playerId);
         }
       }
+      CustomNetTables.SetTableValue("players", "selectedHeroes", playerSetting);
     }
   }
 
   private StartGame(): void {
     print("Game starting!");
 
+    const player = PlayerResource.GetPlayer(0);
+    print(
+      `${player?.GetAssignedHero()} ${PlayerResource.GetSelectedHeroName(0)}`
+    );
+
     const heroList = LoadKeyValues("scripts/npc/herolist.txt") as HeroList;
     this.heroList = Object.keys(heroList);
-    DeepPrintTable(this.heroList);
+    // DeepPrintTable(this.heroList);
 
     // Do some stuff here
     const availableLocations = [
@@ -356,13 +369,21 @@ export class GameMode {
       undefined,
       "objective_stash_location"
     )!;
-    CreateUnitByName(
+    CreateUnitByNameAsync(
       `objective_stash`,
       objectStashPoint.GetAbsOrigin(),
       true,
       undefined,
       undefined,
-      DotaTeam.GOODGUYS
+      DotaTeam.GOODGUYS,
+      (stash) => {
+        stash.AddNewModifier(
+          stash,
+          undefined,
+          "modifier_invulnerable",
+          undefined
+        );
+      }
     );
 
     this.gateEntities = Entities.FindAllByName("gate") as CDOTA_BaseNPC[];
@@ -527,9 +548,9 @@ export class GameMode {
         undefined
       );
       const oldHeroName = spawnedUnit.GetName();
+      const playerId = spawnedUnit.GetPlayerOwnerID();
       if (event.is_respawn > 0) {
         this.wasRespawned = true;
-        const playerId = spawnedUnit.GetPlayerOwnerID();
         const heroNameIndex = RandomInt(0, this.heroList.length - 1);
         const heroName =
           this.heroList.length === 0
@@ -541,6 +562,16 @@ export class GameMode {
           heroName,
           spawnedUnit.GetGold(),
           oldHeroXP
+        );
+        const playerSetting = CustomNetTables.GetTableValue(
+          "players",
+          "selectedHeroes"
+        );
+        playerSetting[playerId] = heroName;
+        CustomNetTables.SetTableValue(
+          "players",
+          "selectedHeroes",
+          playerSetting
         );
         const player = PlayerResource.GetPlayer(playerId)!;
         player
